@@ -1,0 +1,118 @@
+project:
+  deck_name: "Countries (UN Members) - Map + Cities -> Flag"
+  deck_id: 1743812345
+  model_id: 1743812346
+  output_apkg: "build/deck/Countries_UN.apkg"
+  language: "en"
+
+paths:
+  ne_admin0_countries: "data/natural_earth/ne_10m_admin_0_countries.shp"
+  ne_populated_places: "data/natural_earth/ne_10m_populated_places.shp"
+  un_members: "data/un_members.yaml"
+  cities_overrides: "data/cities_overrides.yaml"
+  flags_overrides: "data/flags_overrides.yaml"
+
+  build_root: "build"
+  maps_dir: "build/media/maps"
+  flags_dir: "build/media/flags"
+  qa_dir: "build/qa"
+  attribution_dir: "build/attribution"
+  manifests_dir: "build/manifests"
+  logs_dir: "build/logs"
+
+country_policy:
+  include_un_members_only: true
+  strict: true
+
+cities:
+  default_n: 6
+  min_n_for_tiny: 0
+  tiny_country_bbox_deg:
+    width: 1.2
+    height: 1.2
+  tiny_country_area_deg2: 1.0
+  sort:
+    primary: "scalerank"
+    secondary: "pop_max"
+    tiebreaker: "name"
+  capital_fields:
+    - "adm0cap"
+    - "capital"
+    - "featurecla"
+  capital_choice:
+    prefer_low_scalerank: true
+    prefer_high_pop: true
+
+render:
+  image:
+    width_px: 1024
+    height_px: 768
+    dpi: 144
+    background: "white"
+    format: "png"
+
+  projection:
+    crs: "EPSG:4326"
+
+  extent:
+    padding_ratio: 0.08
+    min_padding_deg: 0.6
+    clamp_lat:
+      min: -85
+      max: 85
+
+  style:
+    country_outline_width: 1.6
+    country_outline_color: "#000000"
+    coastline: false
+    city_marker_color: "#000000"
+    city_marker_size: 14
+    capital_marker_size: 44
+    label_color: "#000000"
+    font_family: "DejaVu Sans"
+    font_size_city: 12
+    font_size_capital: 14
+    font_weight_capital: "bold"
+
+  labels:
+    offsets_px:
+      - [10, 6]
+      - [10, -6]
+      - [-10, 6]
+      - [-10, -6]
+      - [0, 10]
+      - [0, -10]
+      - [14, 0]
+      - [-14, 0]
+    allow_capital_overlap_if_needed: true
+    collision_padding_px: 2
+
+flags:
+  source: "wikimedia_commons"
+  cache_http: true
+  request_timeout_s: 20
+  user_agent: "countries-anki-deckbuilder/0.1 (contact: you@example.com)"
+  output:
+    height_px: 300
+    background: "transparent"
+    padding_px: 16
+  svg:
+    prefer_svg: true
+
+anki:
+  tags:
+    - "un_member"
+  templates:
+    front_title_size_px: 34
+    back_title_size_px: 28
+    map_max_width_pct: 98
+    flag_max_height_px: 360
+
+qa:
+  generate_index: true
+  thumbnail_width_px: 320
+  max_columns: 4
+
+build:
+  write_manifest: true
+  manifest_include_hashes: true

@@ -1,0 +1,12 @@
+SGP:
+  n: 0
+  capital: "Singapore"
+
+MCO:
+  n: 0
+  capital: "Monaco"
+
+CIV:
+  capital: "Yamoussoukro"
+  label_overrides:
+    "Côte d'Ivoire": "Cote d'Ivoire"

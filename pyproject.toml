@@ -1,0 +1,49 @@
+[build-system]
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "countries-anki-deckbuilder"
+version = "0.1.0"
+description = "Automated UN-member countries Anki deck builder (map + cities -> flag)."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+  { name = "countries-anki contributors" }
+]
+dependencies = [
+  "PyYAML>=6.0.2",
+  "requests>=2.32.5",
+  "Pillow>=10.4.0",
+  "matplotlib>=3.9.2",
+  "shapely>=2.0.6",
+  "geopandas>=1.0.1",
+  "genanki>=0.13.1",
+  "cairosvg>=2.7.1"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3.3",
+  "ruff>=0.6.9",
+  "mypy>=1.13.0"
+]
+
+[project.scripts]
+deckbuilder = "deckbuilder.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/deckbuilder"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+packages = ["deckbuilder"]
