@@ -53,7 +53,7 @@ class CitySelector:
         candidates: Sequence[CityRecord],
         override: CityOverride | None = None,
     ) -> SelectedCities:
-        if not candidates:
+        if not candidates and not (override and override.manual_capital):
             raise CitySelectionError(f"No city records available for {iso3}")
 
         capital = self._resolve_capital(iso3=iso3, candidates=candidates, override=override)
@@ -106,6 +106,18 @@ class CitySelector:
                     return city
             raise CitySelectionError(
                 f"Override capital '{override.capital}' not found among city candidates for {iso3}"
+            )
+
+        if override and override.manual_capital:
+            manual = override.manual_capital
+            return CityRecord(
+                name=manual.name,
+                iso3=iso3,
+                lon=manual.lon,
+                lat=manual.lat,
+                scalerank=0,
+                pop_max=None,
+                is_capital=True,
             )
 
         capitals = [city for city in candidates if city.is_capital]

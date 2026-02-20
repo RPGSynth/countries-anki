@@ -76,6 +76,7 @@ class CityOverride:
 
     n: int | None = None
     capital: str | None = None
+    manual_capital: ManualCapitalOverride | None = None
     force_include: tuple[str, ...] = ()
     force_exclude: tuple[str, ...] = ()
     label_overrides: Mapping[str, str] = field(default_factory=dict)
@@ -93,6 +94,18 @@ class CityOverride:
 
         capital_raw = data.get("capital")
         capital = _require_str(capital_raw, "capital") if capital_raw is not None else None
+
+        manual_raw = data.get("manual_capital")
+        manual_capital: ManualCapitalOverride | None
+        if manual_raw is None:
+            manual_capital = None
+        elif isinstance(manual_raw, Mapping):
+            manual_capital = ManualCapitalOverride.from_mapping(manual_raw)
+        else:
+            raise ValueError("Expected mapping for 'manual_capital'")
+
+        if capital is not None and manual_capital is not None:
+            raise ValueError("Use only one of 'capital' or 'manual_capital' in city overrides")
 
         def _parse_name_list(field_name: str) -> tuple[str, ...]:
             raw = data.get(field_name, [])
@@ -119,10 +132,37 @@ class CityOverride:
         return cls(
             n=n,
             capital=capital,
+            manual_capital=manual_capital,
             force_include=force_include,
             force_exclude=force_exclude,
             label_overrides=label_overrides,
         )
+
+
+@dataclass(frozen=True, slots=True)
+class ManualCapitalOverride:
+    """Manual capital fallback when populated places has no usable record."""
+
+    name: str
+    lon: float
+    lat: float
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, Any]) -> ManualCapitalOverride:
+        name = _require_str(data.get("name"), "manual_capital.name")
+        lon_raw = data.get("lon")
+        lat_raw = data.get("lat")
+        if not isinstance(lon_raw, (int, float)):
+            raise ValueError("Expected numeric value for 'manual_capital.lon'")
+        if not isinstance(lat_raw, (int, float)):
+            raise ValueError("Expected numeric value for 'manual_capital.lat'")
+        lon = float(lon_raw)
+        lat = float(lat_raw)
+        if lon < -180.0 or lon > 180.0:
+            raise ValueError("manual_capital.lon must be between -180 and 180")
+        if lat < -90.0 or lat > 90.0:
+            raise ValueError("manual_capital.lat must be between -90 and 90")
+        return cls(name=name, lon=lon, lat=lat)
 
 
 @dataclass(frozen=True, slots=True)

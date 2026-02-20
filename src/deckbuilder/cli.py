@@ -131,7 +131,8 @@ def _dispatch(args: argparse.Namespace) -> int:
     cfg = _load_and_setup(args)
     command = str(args.command)
     if command == "build":
-        return _run_build(cfg, strict_data_files=bool(args.strict_data_files))
+        strict = bool(args.strict_data_files) or cfg.country_policy.strict
+        return _run_build(cfg, strict_data_files=strict)
     if command == "validate":
         strict = bool(args.strict_data_files) or cfg.country_policy.strict
         return _run_validate(cfg, strict_data_files=strict)

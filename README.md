@@ -67,11 +67,12 @@ deckbuilder build --config config.yaml
 - Implemented:
   - Typed config loading and validation
   - Domain models and overrides parsing
+  - Manual capital fallback override support for countries missing populated-places capital entries
   - CLI command structure (`build`, `validate`, `render-maps`, `fetch-flags`, `build-deck`)
+  - Milestone 1 validation: Natural Earth loading, UN ISO3 admin0 coverage checks, geometry cardinality checks, and capital coverage checks (with overrides)
   - Build directory/bootstrap, logging, manifest writing
   - QA index skeleton generation
 - Stubbed (planned milestones):
-  - Natural Earth geometry/city extraction details
   - Deterministic map rendering
   - Wikimedia flag retrieval and attribution harvesting
   - `genanki` deck packaging

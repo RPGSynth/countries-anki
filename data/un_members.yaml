@@ -527,7 +527,7 @@
   name_en: "Netherlands"
   ne_admin_name: "Netherlands"
 - iso3: NOR
-  iso2: NO
+  iso2: "NO"
   name_en: "Norway"
   ne_admin_name: "Norway"
 - iso3: NPL
