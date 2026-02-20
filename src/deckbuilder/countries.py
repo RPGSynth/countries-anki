@@ -42,4 +42,4 @@ def country_index_by_iso3(countries: Iterable[CountrySpec]) -> dict[str, Country
 
 def country_name_candidates(country: CountrySpec) -> tuple[str, ...]:
     """Return possible names that can be used for joins/fuzzy matching."""
-    return (country.name_en, country.ne_admin_name, *country.aliases)
+    return (country.name_en, country.ne_admin_name, country.capital, *country.aliases)

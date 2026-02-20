@@ -1,19 +1,6 @@
-SGP:
-  n: 0
-  capital: "Singapore"
-
-MCO:
-  n: 0
-  capital: "Monaco"
-
-CIV:
-  capital: "Yamoussoukro"
-  label_overrides:
-    "Côte d'Ivoire": "Cote d'Ivoire"
-
 NRU:
   n: 0
   manual_capital:
     name: "Yaren"
-    lon: 166.92
-    lat: -0.55
+    lon: 166.9200
+    lat: -0.5500

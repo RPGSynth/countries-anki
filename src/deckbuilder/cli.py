@@ -7,8 +7,10 @@ import logging
 from pathlib import Path
 from typing import Sequence
 
+from .city_selection import format_city_selection_lines, run_city_selection
 from .config import AppConfig, load_config
 from .countries import load_un_members
+from .inspect_report import generate_inspection_report
 from .models import BuildManifest
 from .qa import write_qa_index
 from .util import detect_git_commit, ensure_directories, sha256_file, setup_logging, write_json
@@ -44,6 +46,17 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Treat missing Natural Earth files as validation errors.",
     )
 
+    select_p = subparsers.add_parser(
+        "select-cities",
+        help="Run deterministic city selection and write audit JSON.",
+    )
+    add_common(select_p)
+    select_p.add_argument(
+        "--strict-data-files",
+        action="store_true",
+        help="Treat missing Natural Earth files as hard errors.",
+    )
+
     render_p = subparsers.add_parser("render-maps", help="Render maps only (not implemented yet).")
     add_common(render_p)
 
@@ -52,6 +65,24 @@ def _build_parser() -> argparse.ArgumentParser:
 
     deck_p = subparsers.add_parser("build-deck", help="Build Anki deck only (not implemented yet).")
     add_common(deck_p)
+
+    inspect_p = subparsers.add_parser(
+        "inspect",
+        help="Generate visual + JSON inspection report for data joins and city selection.",
+    )
+    add_common(inspect_p)
+    inspect_p.add_argument(
+        "--country",
+        action="append",
+        default=[],
+        help="ISO3 filter. Can be repeated. If omitted, first N countries are shown.",
+    )
+    inspect_p.add_argument(
+        "--limit",
+        type=int,
+        default=40,
+        help="Max countries in report when --country is not provided.",
+    )
 
     return parser
 
@@ -81,6 +112,13 @@ def _run_build(cfg: AppConfig, *, strict_data_files: bool) -> int:
         LOGGER.error("Build aborted due to validation errors.")
         return 1
 
+    city_selection_report = run_city_selection(cfg, strict_data_files=strict_data_files)
+    for line in format_city_selection_lines(city_selection_report):
+        LOGGER.info(line)
+    if not city_selection_report.ok:
+        LOGGER.error("Build aborted due to city selection errors.")
+        return 1
+
     countries = load_un_members(cfg.paths.un_members)
     qa_index_path: Path | None = None
     if cfg.qa.generate_index:
@@ -104,6 +142,7 @@ def _run_build(cfg: AppConfig, *, strict_data_files: bool) -> int:
             git_commit=detect_git_commit(cfg.source_path.parent),
             steps={
                 "validate": "ok",
+                "select_cities": "ok" if city_selection_report.output_path else "skipped",
                 "render_maps": "stub",
                 "fetch_flags": "stub",
                 "build_deck": "stub",
@@ -111,6 +150,11 @@ def _run_build(cfg: AppConfig, *, strict_data_files: bool) -> int:
             },
             artifacts={
                 "qa_index": str(qa_index_path) if qa_index_path else "",
+                "city_selection": (
+                    str(city_selection_report.output_path)
+                    if city_selection_report.output_path is not None
+                    else ""
+                ),
                 "output_apkg": str(cfg.project.output_apkg),
             },
         )
@@ -127,6 +171,28 @@ def _stub_command(name: str) -> int:
     return 2
 
 
+def _run_inspect(cfg: AppConfig, *, countries: Sequence[str], limit: int) -> int:
+    try:
+        html_path, json_path = generate_inspection_report(
+            cfg,
+            country_filters=countries,
+            limit=limit,
+        )
+    except Exception as exc:
+        LOGGER.error("Inspection report failed: %s", exc)
+        return 1
+    LOGGER.info("Inspection HTML report written to %s", html_path)
+    LOGGER.info("Inspection JSON report written to %s", json_path)
+    return 0
+
+
+def _run_select_cities(cfg: AppConfig, *, strict_data_files: bool) -> int:
+    report = run_city_selection(cfg, strict_data_files=strict_data_files)
+    for line in format_city_selection_lines(report):
+        LOGGER.info(line)
+    return 0 if report.ok else 1
+
+
 def _dispatch(args: argparse.Namespace) -> int:
     cfg = _load_and_setup(args)
     command = str(args.command)
@@ -136,12 +202,18 @@ def _dispatch(args: argparse.Namespace) -> int:
     if command == "validate":
         strict = bool(args.strict_data_files) or cfg.country_policy.strict
         return _run_validate(cfg, strict_data_files=strict)
+    if command == "select-cities":
+        strict = bool(args.strict_data_files) or cfg.country_policy.strict
+        return _run_select_cities(cfg, strict_data_files=strict)
     if command == "render-maps":
         return _stub_command("render-maps")
     if command == "fetch-flags":
         return _stub_command("fetch-flags")
     if command == "build-deck":
         return _stub_command("build-deck")
+    if command == "inspect":
+        countries = [str(item) for item in args.country]
+        return _run_inspect(cfg, countries=countries, limit=int(args.limit))
     raise ValueError(f"Unknown command: {command}")
 
 

@@ -29,6 +29,7 @@ class CountrySpec:
     iso2: str
     name_en: str
     ne_admin_name: str
+    capital: str
     aliases: tuple[str, ...] = ()
 
     @classmethod
@@ -37,6 +38,7 @@ class CountrySpec:
         iso2 = _normalize_iso(_require_str(data.get("iso2"), "iso2"), 2, "iso2")
         name_en = _require_str(data.get("name_en"), "name_en")
         ne_admin_name = _require_str(data.get("ne_admin_name"), "ne_admin_name")
+        capital = _require_str(data.get("capital"), "capital")
         aliases_raw = data.get("aliases", [])
         aliases: list[str] = []
         if aliases_raw is not None:
@@ -49,6 +51,7 @@ class CountrySpec:
             iso2=iso2,
             name_en=name_en,
             ne_admin_name=ne_admin_name,
+            capital=capital,
             aliases=tuple(aliases),
         )
 
@@ -183,6 +186,8 @@ class SelectedCities:
 
     capital: CityRecord
     others: tuple[CityRecord, ...]
+    effective_n: int | None = None
+    capital_resolution: str = "unknown"
 
     @property
     def all_cities(self) -> tuple[CityRecord, ...]:

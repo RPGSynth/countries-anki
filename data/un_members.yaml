@@ -1,798 +1,991 @@
-﻿- iso3: AFG
+- iso3: AFG
   iso2: AF
-  name_en: "Afghanistan"
-  ne_admin_name: "Afghanistan"
+  name_en: Afghanistan
+  ne_admin_name: Afghanistan
+  capital: Kabul
 - iso3: AGO
   iso2: AO
-  name_en: "Angola"
-  ne_admin_name: "Angola"
+  name_en: Angola
+  ne_admin_name: Angola
+  capital: Luanda
 - iso3: ALB
   iso2: AL
-  name_en: "Albania"
-  ne_admin_name: "Albania"
+  name_en: Albania
+  ne_admin_name: Albania
+  capital: Tirana
 - iso3: AND
   iso2: AD
-  name_en: "Andorra"
-  ne_admin_name: "Andorra"
+  name_en: Andorra
+  ne_admin_name: Andorra
+  capital: Andorra la Vella
 - iso3: ARE
   iso2: AE
-  name_en: "United Arab Emirates"
-  ne_admin_name: "United Arab Emirates"
+  name_en: United Arab Emirates
+  ne_admin_name: United Arab Emirates
+  capital: Abu Dhabi
 - iso3: ARG
   iso2: AR
-  name_en: "Argentina"
-  ne_admin_name: "Argentina"
+  name_en: Argentina
+  ne_admin_name: Argentina
+  capital: Buenos Aires
 - iso3: ARM
   iso2: AM
-  name_en: "Armenia"
-  ne_admin_name: "Armenia"
+  name_en: Armenia
+  ne_admin_name: Armenia
+  capital: Yerevan
 - iso3: ATG
   iso2: AG
-  name_en: "Antigua and Barbuda"
-  ne_admin_name: "Antigua and Barbuda"
+  name_en: Antigua and Barbuda
+  ne_admin_name: Antigua and Barbuda
+  capital: Saint John's
 - iso3: AUS
   iso2: AU
-  name_en: "Australia"
-  ne_admin_name: "Australia"
+  name_en: Australia
+  ne_admin_name: Australia
+  capital: Canberra
 - iso3: AUT
   iso2: AT
-  name_en: "Austria"
-  ne_admin_name: "Austria"
+  name_en: Austria
+  ne_admin_name: Austria
+  capital: Vienna
 - iso3: AZE
   iso2: AZ
-  name_en: "Azerbaijan"
-  ne_admin_name: "Azerbaijan"
+  name_en: Azerbaijan
+  ne_admin_name: Azerbaijan
+  capital: Baku
 - iso3: BDI
   iso2: BI
-  name_en: "Burundi"
-  ne_admin_name: "Burundi"
+  name_en: Burundi
+  ne_admin_name: Burundi
+  capital: Bujumbura
 - iso3: BEL
   iso2: BE
-  name_en: "Belgium"
-  ne_admin_name: "Belgium"
+  name_en: Belgium
+  ne_admin_name: Belgium
+  capital: Brussels
 - iso3: BEN
   iso2: BJ
-  name_en: "Benin"
-  ne_admin_name: "Benin"
+  name_en: Benin
+  ne_admin_name: Benin
+  capital: Porto-Novo
 - iso3: BFA
   iso2: BF
-  name_en: "Burkina Faso"
-  ne_admin_name: "Burkina Faso"
+  name_en: Burkina Faso
+  ne_admin_name: Burkina Faso
+  capital: Ouagadougou
 - iso3: BGD
   iso2: BD
-  name_en: "Bangladesh"
-  ne_admin_name: "Bangladesh"
+  name_en: Bangladesh
+  ne_admin_name: Bangladesh
+  capital: Dhaka
 - iso3: BGR
   iso2: BG
-  name_en: "Bulgaria"
-  ne_admin_name: "Bulgaria"
+  name_en: Bulgaria
+  ne_admin_name: Bulgaria
+  capital: Sofia
 - iso3: BHR
   iso2: BH
-  name_en: "Bahrain"
-  ne_admin_name: "Bahrain"
+  name_en: Bahrain
+  ne_admin_name: Bahrain
+  capital: Manama
 - iso3: BHS
   iso2: BS
-  name_en: "Bahamas"
-  ne_admin_name: "The Bahamas"
+  name_en: Bahamas
+  ne_admin_name: The Bahamas
+  capital: Nassau
 - iso3: BIH
   iso2: BA
-  name_en: "Bosnia and Herzegovina"
-  ne_admin_name: "Bosnia and Herzegovina"
+  name_en: Bosnia and Herzegovina
+  ne_admin_name: Bosnia and Herzegovina
+  capital: Sarajevo
 - iso3: BLR
   iso2: BY
-  name_en: "Belarus"
-  ne_admin_name: "Belarus"
+  name_en: Belarus
+  ne_admin_name: Belarus
+  capital: Minsk
 - iso3: BLZ
   iso2: BZ
-  name_en: "Belize"
-  ne_admin_name: "Belize"
+  name_en: Belize
+  ne_admin_name: Belize
+  capital: Belmopan
 - iso3: BOL
   iso2: BO
-  name_en: "Bolivia"
-  ne_admin_name: "Bolivia"
+  name_en: Bolivia
+  ne_admin_name: Bolivia
+  capital: Sucre
 - iso3: BRA
   iso2: BR
-  name_en: "Brazil"
-  ne_admin_name: "Brazil"
+  name_en: Brazil
+  ne_admin_name: Brazil
+  capital: Brasília
 - iso3: BRB
   iso2: BB
-  name_en: "Barbados"
-  ne_admin_name: "Barbados"
+  name_en: Barbados
+  ne_admin_name: Barbados
+  capital: Bridgetown
 - iso3: BRN
   iso2: BN
-  name_en: "Brunei"
-  ne_admin_name: "Brunei"
+  name_en: Brunei
+  ne_admin_name: Brunei
+  capital: Bandar Seri Begawan
 - iso3: BTN
   iso2: BT
-  name_en: "Bhutan"
-  ne_admin_name: "Bhutan"
+  name_en: Bhutan
+  ne_admin_name: Bhutan
+  capital: Thimphu
 - iso3: BWA
   iso2: BW
-  name_en: "Botswana"
-  ne_admin_name: "Botswana"
+  name_en: Botswana
+  ne_admin_name: Botswana
+  capital: Gaborone
 - iso3: CAF
   iso2: CF
-  name_en: "Central African Republic"
-  ne_admin_name: "Central African Republic"
+  name_en: Central African Republic
+  ne_admin_name: Central African Republic
+  capital: Bangui
 - iso3: CAN
   iso2: CA
-  name_en: "Canada"
-  ne_admin_name: "Canada"
+  name_en: Canada
+  ne_admin_name: Canada
+  capital: Ottawa
 - iso3: CHE
   iso2: CH
-  name_en: "Switzerland"
-  ne_admin_name: "Switzerland"
+  name_en: Switzerland
+  ne_admin_name: Switzerland
+  capital: Bern
 - iso3: CHL
   iso2: CL
-  name_en: "Chile"
-  ne_admin_name: "Chile"
+  name_en: Chile
+  ne_admin_name: Chile
+  capital: Santiago
 - iso3: CHN
   iso2: CN
-  name_en: "China"
-  ne_admin_name: "China"
+  name_en: China
+  ne_admin_name: China
+  capital: Beijing
 - iso3: CIV
   iso2: CI
-  name_en: "Côte d'Ivoire"
-  ne_admin_name: "Côte d'Ivoire"
+  name_en: Côte d'Ivoire
+  ne_admin_name: Côte d'Ivoire
   aliases:
-    - "Ivory Coast"
+  - Ivory Coast
+  capital: Yamoussoukro
 - iso3: CMR
   iso2: CM
-  name_en: "Cameroon"
-  ne_admin_name: "Cameroon"
+  name_en: Cameroon
+  ne_admin_name: Cameroon
+  capital: Yaoundé
 - iso3: COD
   iso2: CD
-  name_en: "Democratic Republic of the Congo"
-  ne_admin_name: "Democratic Republic of the Congo"
+  name_en: Democratic Republic of the Congo
+  ne_admin_name: Democratic Republic of the Congo
   aliases:
-    - "DR Congo"
+  - DR Congo
+  capital: Kinshasa
 - iso3: COG
   iso2: CG
-  name_en: "Republic of the Congo"
-  ne_admin_name: "Republic of the Congo"
+  name_en: Republic of the Congo
+  ne_admin_name: Republic of the Congo
+  capital: Brazzaville
 - iso3: COL
   iso2: CO
-  name_en: "Colombia"
-  ne_admin_name: "Colombia"
+  name_en: Colombia
+  ne_admin_name: Colombia
+  capital: Bogotá
 - iso3: COM
   iso2: KM
-  name_en: "Comoros"
-  ne_admin_name: "Comoros"
+  name_en: Comoros
+  ne_admin_name: Comoros
+  capital: Moroni
 - iso3: CPV
   iso2: CV
-  name_en: "Cape Verde"
-  ne_admin_name: "Cape Verde"
+  name_en: Cape Verde
+  ne_admin_name: Cape Verde
   aliases:
-    - "Cabo Verde"
+  - Cabo Verde
+  capital: Praia
 - iso3: CRI
   iso2: CR
-  name_en: "Costa Rica"
-  ne_admin_name: "Costa Rica"
+  name_en: Costa Rica
+  ne_admin_name: Costa Rica
+  capital: San José
 - iso3: CUB
   iso2: CU
-  name_en: "Cuba"
-  ne_admin_name: "Cuba"
+  name_en: Cuba
+  ne_admin_name: Cuba
+  capital: Havana
 - iso3: CYP
   iso2: CY
-  name_en: "Cyprus"
-  ne_admin_name: "Cyprus"
+  name_en: Cyprus
+  ne_admin_name: Cyprus
+  capital: Nicosia
 - iso3: CZE
   iso2: CZ
-  name_en: "Czechia"
-  ne_admin_name: "Czechia"
+  name_en: Czechia
+  ne_admin_name: Czechia
   aliases:
-    - "Czech Republic"
+  - Czech Republic
+  capital: Prague
 - iso3: DEU
   iso2: DE
-  name_en: "Germany"
-  ne_admin_name: "Germany"
+  name_en: Germany
+  ne_admin_name: Germany
+  capital: Berlin
 - iso3: DJI
   iso2: DJ
-  name_en: "Djibouti"
-  ne_admin_name: "Djibouti"
+  name_en: Djibouti
+  ne_admin_name: Djibouti
+  capital: Djibouti
 - iso3: DMA
   iso2: DM
-  name_en: "Dominica"
-  ne_admin_name: "Dominica"
+  name_en: Dominica
+  ne_admin_name: Dominica
+  capital: Roseau
 - iso3: DNK
   iso2: DK
-  name_en: "Denmark"
-  ne_admin_name: "Denmark"
+  name_en: Denmark
+  ne_admin_name: Denmark
+  capital: Copenhagen
 - iso3: DOM
   iso2: DO
-  name_en: "Dominican Republic"
-  ne_admin_name: "Dominican Republic"
+  name_en: Dominican Republic
+  ne_admin_name: Dominican Republic
+  capital: Santo Domingo
 - iso3: DZA
   iso2: DZ
-  name_en: "Algeria"
-  ne_admin_name: "Algeria"
+  name_en: Algeria
+  ne_admin_name: Algeria
+  capital: Algiers
 - iso3: ECU
   iso2: EC
-  name_en: "Ecuador"
-  ne_admin_name: "Ecuador"
+  name_en: Ecuador
+  ne_admin_name: Ecuador
+  capital: Quito
 - iso3: EGY
   iso2: EG
-  name_en: "Egypt"
-  ne_admin_name: "Egypt"
+  name_en: Egypt
+  ne_admin_name: Egypt
+  capital: Cairo
 - iso3: ERI
   iso2: ER
-  name_en: "Eritrea"
-  ne_admin_name: "Eritrea"
+  name_en: Eritrea
+  ne_admin_name: Eritrea
+  capital: Asmara
 - iso3: ESP
   iso2: ES
-  name_en: "Spain"
-  ne_admin_name: "Spain"
+  name_en: Spain
+  ne_admin_name: Spain
+  capital: Madrid
 - iso3: EST
   iso2: EE
-  name_en: "Estonia"
-  ne_admin_name: "Estonia"
+  name_en: Estonia
+  ne_admin_name: Estonia
+  capital: Tallinn
 - iso3: ETH
   iso2: ET
-  name_en: "Ethiopia"
-  ne_admin_name: "Ethiopia"
+  name_en: Ethiopia
+  ne_admin_name: Ethiopia
+  capital: Addis Ababa
 - iso3: FIN
   iso2: FI
-  name_en: "Finland"
-  ne_admin_name: "Finland"
+  name_en: Finland
+  ne_admin_name: Finland
+  capital: Helsinki
 - iso3: FJI
   iso2: FJ
-  name_en: "Fiji"
-  ne_admin_name: "Fiji"
+  name_en: Fiji
+  ne_admin_name: Fiji
+  capital: Suva
 - iso3: FRA
   iso2: FR
-  name_en: "France"
-  ne_admin_name: "France"
+  name_en: France
+  ne_admin_name: France
+  capital: Paris
 - iso3: FSM
   iso2: FM
-  name_en: "Micronesia"
-  ne_admin_name: "Micronesia"
+  name_en: Micronesia
+  ne_admin_name: Micronesia
   aliases:
-    - "Federated States of Micronesia"
+  - Federated States of Micronesia
+  capital: Palikir
 - iso3: GAB
   iso2: GA
-  name_en: "Gabon"
-  ne_admin_name: "Gabon"
+  name_en: Gabon
+  ne_admin_name: Gabon
+  capital: Libreville
 - iso3: GBR
   iso2: GB
-  name_en: "United Kingdom"
-  ne_admin_name: "United Kingdom"
+  name_en: United Kingdom
+  ne_admin_name: United Kingdom
+  capital: London
 - iso3: GEO
   iso2: GE
-  name_en: "Georgia"
-  ne_admin_name: "Georgia"
+  name_en: Georgia
+  ne_admin_name: Georgia
+  capital: Tbilisi
 - iso3: GHA
   iso2: GH
-  name_en: "Ghana"
-  ne_admin_name: "Ghana"
+  name_en: Ghana
+  ne_admin_name: Ghana
+  capital: Accra
 - iso3: GIN
   iso2: GN
-  name_en: "Guinea"
-  ne_admin_name: "Guinea"
+  name_en: Guinea
+  ne_admin_name: Guinea
+  capital: Conakry
 - iso3: GMB
   iso2: GM
-  name_en: "Gambia"
-  ne_admin_name: "Gambia"
+  name_en: Gambia
+  ne_admin_name: Gambia
+  capital: Banjul
 - iso3: GNB
   iso2: GW
-  name_en: "Guinea-Bissau"
-  ne_admin_name: "Guinea-Bissau"
+  name_en: Guinea-Bissau
+  ne_admin_name: Guinea-Bissau
   aliases:
-    - "Guinea Bissau"
+  - Guinea Bissau
+  capital: Bissau
 - iso3: GNQ
   iso2: GQ
-  name_en: "Equatorial Guinea"
-  ne_admin_name: "Equatorial Guinea"
+  name_en: Equatorial Guinea
+  ne_admin_name: Equatorial Guinea
+  capital: Ciudad de la Paz
 - iso3: GRC
   iso2: GR
-  name_en: "Greece"
-  ne_admin_name: "Greece"
+  name_en: Greece
+  ne_admin_name: Greece
+  capital: Athens
 - iso3: GRD
   iso2: GD
-  name_en: "Grenada"
-  ne_admin_name: "Grenada"
+  name_en: Grenada
+  ne_admin_name: Grenada
+  capital: St. George's
 - iso3: GTM
   iso2: GT
-  name_en: "Guatemala"
-  ne_admin_name: "Guatemala"
+  name_en: Guatemala
+  ne_admin_name: Guatemala
+  capital: Guatemala City
 - iso3: GUY
   iso2: GY
-  name_en: "Guyana"
-  ne_admin_name: "Guyana"
+  name_en: Guyana
+  ne_admin_name: Guyana
+  capital: Georgetown
 - iso3: HND
   iso2: HN
-  name_en: "Honduras"
-  ne_admin_name: "Honduras"
+  name_en: Honduras
+  ne_admin_name: Honduras
+  capital: Tegucigalpa
 - iso3: HRV
   iso2: HR
-  name_en: "Croatia"
-  ne_admin_name: "Croatia"
+  name_en: Croatia
+  ne_admin_name: Croatia
+  capital: Zagreb
 - iso3: HTI
   iso2: HT
-  name_en: "Haiti"
-  ne_admin_name: "Haiti"
+  name_en: Haiti
+  ne_admin_name: Haiti
+  capital: Port-au-Prince
 - iso3: HUN
   iso2: HU
-  name_en: "Hungary"
-  ne_admin_name: "Hungary"
+  name_en: Hungary
+  ne_admin_name: Hungary
+  capital: Budapest
 - iso3: IDN
   iso2: ID
-  name_en: "Indonesia"
-  ne_admin_name: "Indonesia"
+  name_en: Indonesia
+  ne_admin_name: Indonesia
+  capital: Jakarta
 - iso3: IND
   iso2: IN
-  name_en: "India"
-  ne_admin_name: "India"
+  name_en: India
+  ne_admin_name: India
+  capital: New Delhi
 - iso3: IRL
   iso2: IE
-  name_en: "Ireland"
-  ne_admin_name: "Ireland"
+  name_en: Ireland
+  ne_admin_name: Ireland
+  capital: Dublin
 - iso3: IRN
   iso2: IR
-  name_en: "Iran"
-  ne_admin_name: "Iran"
+  name_en: Iran
+  ne_admin_name: Iran
+  capital: Tehran
 - iso3: IRQ
   iso2: IQ
-  name_en: "Iraq"
-  ne_admin_name: "Iraq"
+  name_en: Iraq
+  ne_admin_name: Iraq
+  capital: Baghdad
 - iso3: ISL
   iso2: IS
-  name_en: "Iceland"
-  ne_admin_name: "Iceland"
+  name_en: Iceland
+  ne_admin_name: Iceland
+  capital: Reykjavik
 - iso3: ISR
   iso2: IL
-  name_en: "Israel"
-  ne_admin_name: "Israel"
+  name_en: Israel
+  ne_admin_name: Israel
+  capital: Jerusalem
 - iso3: ITA
   iso2: IT
-  name_en: "Italy"
-  ne_admin_name: "Italy"
+  name_en: Italy
+  ne_admin_name: Italy
+  capital: Rome
 - iso3: JAM
   iso2: JM
-  name_en: "Jamaica"
-  ne_admin_name: "Jamaica"
+  name_en: Jamaica
+  ne_admin_name: Jamaica
+  capital: Kingston
 - iso3: JOR
   iso2: JO
-  name_en: "Jordan"
-  ne_admin_name: "Jordan"
+  name_en: Jordan
+  ne_admin_name: Jordan
+  capital: Amman
 - iso3: JPN
   iso2: JP
-  name_en: "Japan"
-  ne_admin_name: "Japan"
+  name_en: Japan
+  ne_admin_name: Japan
+  capital: Tokyo
 - iso3: KAZ
   iso2: KZ
-  name_en: "Kazakhstan"
-  ne_admin_name: "Kazakhstan"
+  name_en: Kazakhstan
+  ne_admin_name: Kazakhstan
+  capital: Astana
 - iso3: KEN
   iso2: KE
-  name_en: "Kenya"
-  ne_admin_name: "Kenya"
+  name_en: Kenya
+  ne_admin_name: Kenya
+  capital: Nairobi
 - iso3: KGZ
   iso2: KG
-  name_en: "Kyrgyzstan"
-  ne_admin_name: "Kyrgyzstan"
+  name_en: Kyrgyzstan
+  ne_admin_name: Kyrgyzstan
+  capital: Bishkek
 - iso3: KHM
   iso2: KH
-  name_en: "Cambodia"
-  ne_admin_name: "Cambodia"
+  name_en: Cambodia
+  ne_admin_name: Cambodia
+  capital: Phnom Penh
 - iso3: KIR
   iso2: KI
-  name_en: "Kiribati"
-  ne_admin_name: "Kiribati"
+  name_en: Kiribati
+  ne_admin_name: Kiribati
+  capital: South Tarawa
 - iso3: KNA
   iso2: KN
-  name_en: "Saint Kitts and Nevis"
-  ne_admin_name: "Saint Kitts and Nevis"
+  name_en: Saint Kitts and Nevis
+  ne_admin_name: Saint Kitts and Nevis
+  capital: Basseterre
 - iso3: KOR
   iso2: KR
-  name_en: "South Korea"
-  ne_admin_name: "South Korea"
+  name_en: South Korea
+  ne_admin_name: South Korea
+  capital: Seoul
 - iso3: KWT
   iso2: KW
-  name_en: "Kuwait"
-  ne_admin_name: "Kuwait"
+  name_en: Kuwait
+  ne_admin_name: Kuwait
+  capital: Kuwait City
 - iso3: LAO
   iso2: LA
-  name_en: "Laos"
-  ne_admin_name: "Laos"
+  name_en: Laos
+  ne_admin_name: Laos
+  capital: Vientiane
 - iso3: LBN
   iso2: LB
-  name_en: "Lebanon"
-  ne_admin_name: "Lebanon"
+  name_en: Lebanon
+  ne_admin_name: Lebanon
+  capital: Beirut
 - iso3: LBR
   iso2: LR
-  name_en: "Liberia"
-  ne_admin_name: "Liberia"
+  name_en: Liberia
+  ne_admin_name: Liberia
+  capital: Monrovia
 - iso3: LBY
   iso2: LY
-  name_en: "Libya"
-  ne_admin_name: "Libya"
+  name_en: Libya
+  ne_admin_name: Libya
+  capital: Tripoli
 - iso3: LCA
   iso2: LC
-  name_en: "Saint Lucia"
-  ne_admin_name: "Saint Lucia"
+  name_en: Saint Lucia
+  ne_admin_name: Saint Lucia
+  capital: Castries
 - iso3: LIE
   iso2: LI
-  name_en: "Liechtenstein"
-  ne_admin_name: "Liechtenstein"
+  name_en: Liechtenstein
+  ne_admin_name: Liechtenstein
+  capital: Vaduz
 - iso3: LKA
   iso2: LK
-  name_en: "Sri Lanka"
-  ne_admin_name: "Sri Lanka"
+  name_en: Sri Lanka
+  ne_admin_name: Sri Lanka
+  capital: Colombo
 - iso3: LSO
   iso2: LS
-  name_en: "Lesotho"
-  ne_admin_name: "Lesotho"
+  name_en: Lesotho
+  ne_admin_name: Lesotho
+  capital: Maseru
 - iso3: LTU
   iso2: LT
-  name_en: "Lithuania"
-  ne_admin_name: "Lithuania"
+  name_en: Lithuania
+  ne_admin_name: Lithuania
+  capital: Vilnius
 - iso3: LUX
   iso2: LU
-  name_en: "Luxembourg"
-  ne_admin_name: "Luxembourg"
+  name_en: Luxembourg
+  ne_admin_name: Luxembourg
+  capital: Luxembourg
 - iso3: LVA
   iso2: LV
-  name_en: "Latvia"
-  ne_admin_name: "Latvia"
+  name_en: Latvia
+  ne_admin_name: Latvia
+  capital: Riga
 - iso3: MAR
   iso2: MA
-  name_en: "Morocco"
-  ne_admin_name: "Morocco"
+  name_en: Morocco
+  ne_admin_name: Morocco
+  capital: Rabat
 - iso3: MCO
   iso2: MC
-  name_en: "Monaco"
-  ne_admin_name: "Monaco"
+  name_en: Monaco
+  ne_admin_name: Monaco
+  capital: Monaco
 - iso3: MDA
   iso2: MD
-  name_en: "Moldova"
-  ne_admin_name: "Moldova"
+  name_en: Moldova
+  ne_admin_name: Moldova
+  capital: Chișinău
 - iso3: MDG
   iso2: MG
-  name_en: "Madagascar"
-  ne_admin_name: "Madagascar"
+  name_en: Madagascar
+  ne_admin_name: Madagascar
+  capital: Antananarivo
 - iso3: MDV
   iso2: MV
-  name_en: "Maldives"
-  ne_admin_name: "Maldives"
+  name_en: Maldives
+  ne_admin_name: Maldives
+  capital: Malé
 - iso3: MEX
   iso2: MX
-  name_en: "Mexico"
-  ne_admin_name: "Mexico"
+  name_en: Mexico
+  ne_admin_name: Mexico
+  capital: Mexico City
 - iso3: MHL
   iso2: MH
-  name_en: "Marshall Islands"
-  ne_admin_name: "Marshall Islands"
+  name_en: Marshall Islands
+  ne_admin_name: Marshall Islands
+  capital: Majuro
 - iso3: MKD
   iso2: MK
-  name_en: "North Macedonia"
-  ne_admin_name: "North Macedonia"
+  name_en: North Macedonia
+  ne_admin_name: North Macedonia
+  capital: Skopje
 - iso3: MLI
   iso2: ML
-  name_en: "Mali"
-  ne_admin_name: "Mali"
+  name_en: Mali
+  ne_admin_name: Mali
+  capital: Bamako
 - iso3: MLT
   iso2: MT
-  name_en: "Malta"
-  ne_admin_name: "Malta"
+  name_en: Malta
+  ne_admin_name: Malta
+  capital: Valletta
 - iso3: MMR
   iso2: MM
-  name_en: "Myanmar"
-  ne_admin_name: "Myanmar"
+  name_en: Myanmar
+  ne_admin_name: Myanmar
+  capital: Naypyidaw
 - iso3: MNE
   iso2: ME
-  name_en: "Montenegro"
-  ne_admin_name: "Montenegro"
+  name_en: Montenegro
+  ne_admin_name: Montenegro
+  capital: Podgorica
 - iso3: MNG
   iso2: MN
-  name_en: "Mongolia"
-  ne_admin_name: "Mongolia"
+  name_en: Mongolia
+  ne_admin_name: Mongolia
+  capital: Ulan Bator
 - iso3: MOZ
   iso2: MZ
-  name_en: "Mozambique"
-  ne_admin_name: "Mozambique"
+  name_en: Mozambique
+  ne_admin_name: Mozambique
+  capital: Maputo
 - iso3: MRT
   iso2: MR
-  name_en: "Mauritania"
-  ne_admin_name: "Mauritania"
+  name_en: Mauritania
+  ne_admin_name: Mauritania
+  capital: Nouakchott
 - iso3: MUS
   iso2: MU
-  name_en: "Mauritius"
-  ne_admin_name: "Mauritius"
+  name_en: Mauritius
+  ne_admin_name: Mauritius
+  capital: Port Louis
 - iso3: MWI
   iso2: MW
-  name_en: "Malawi"
-  ne_admin_name: "Malawi"
+  name_en: Malawi
+  ne_admin_name: Malawi
+  capital: Lilongwe
 - iso3: MYS
   iso2: MY
-  name_en: "Malaysia"
-  ne_admin_name: "Malaysia"
+  name_en: Malaysia
+  ne_admin_name: Malaysia
+  capital: Kuala Lumpur
 - iso3: NAM
   iso2: NA
-  name_en: "Namibia"
-  ne_admin_name: "Namibia"
+  name_en: Namibia
+  ne_admin_name: Namibia
+  capital: Windhoek
 - iso3: NER
   iso2: NE
-  name_en: "Niger"
-  ne_admin_name: "Niger"
+  name_en: Niger
+  ne_admin_name: Niger
+  capital: Niamey
 - iso3: NGA
   iso2: NG
-  name_en: "Nigeria"
-  ne_admin_name: "Nigeria"
+  name_en: Nigeria
+  ne_admin_name: Nigeria
+  capital: Abuja
 - iso3: NIC
   iso2: NI
-  name_en: "Nicaragua"
-  ne_admin_name: "Nicaragua"
+  name_en: Nicaragua
+  ne_admin_name: Nicaragua
+  capital: Managua
 - iso3: NLD
   iso2: NL
-  name_en: "Netherlands"
-  ne_admin_name: "Netherlands"
+  name_en: Netherlands
+  ne_admin_name: Netherlands
+  capital: Amsterdam
 - iso3: NOR
-  iso2: "NO"
-  name_en: "Norway"
-  ne_admin_name: "Norway"
+  iso2: 'NO'
+  name_en: Norway
+  ne_admin_name: Norway
+  capital: Oslo
 - iso3: NPL
   iso2: NP
-  name_en: "Nepal"
-  ne_admin_name: "Nepal"
+  name_en: Nepal
+  ne_admin_name: Nepal
+  capital: Kathmandu
 - iso3: NRU
   iso2: NR
-  name_en: "Nauru"
-  ne_admin_name: "Nauru"
+  name_en: Nauru
+  ne_admin_name: Nauru
+  capital: Yaren
 - iso3: NZL
   iso2: NZ
-  name_en: "New Zealand"
-  ne_admin_name: "New Zealand"
+  name_en: New Zealand
+  ne_admin_name: New Zealand
+  capital: Wellington
 - iso3: OMN
   iso2: OM
-  name_en: "Oman"
-  ne_admin_name: "Oman"
+  name_en: Oman
+  ne_admin_name: Oman
+  capital: Muscat
 - iso3: PAK
   iso2: PK
-  name_en: "Pakistan"
-  ne_admin_name: "Pakistan"
+  name_en: Pakistan
+  ne_admin_name: Pakistan
+  capital: Islamabad
 - iso3: PAN
   iso2: PA
-  name_en: "Panama"
-  ne_admin_name: "Panama"
+  name_en: Panama
+  ne_admin_name: Panama
+  capital: Panama City
 - iso3: PER
   iso2: PE
-  name_en: "Peru"
-  ne_admin_name: "Peru"
+  name_en: Peru
+  ne_admin_name: Peru
+  capital: Lima
 - iso3: PHL
   iso2: PH
-  name_en: "Philippines"
-  ne_admin_name: "Philippines"
+  name_en: Philippines
+  ne_admin_name: Philippines
+  capital: Manila
 - iso3: PLW
   iso2: PW
-  name_en: "Palau"
-  ne_admin_name: "Palau"
+  name_en: Palau
+  ne_admin_name: Palau
+  capital: Ngerulmud
 - iso3: PNG
   iso2: PG
-  name_en: "Papua New Guinea"
-  ne_admin_name: "Papua New Guinea"
+  name_en: Papua New Guinea
+  ne_admin_name: Papua New Guinea
+  capital: Port Moresby
 - iso3: POL
   iso2: PL
-  name_en: "Poland"
-  ne_admin_name: "Poland"
+  name_en: Poland
+  ne_admin_name: Poland
+  capital: Warsaw
 - iso3: PRK
   iso2: KP
-  name_en: "North Korea"
-  ne_admin_name: "North Korea"
+  name_en: North Korea
+  ne_admin_name: North Korea
+  capital: Pyongyang
 - iso3: PRT
   iso2: PT
-  name_en: "Portugal"
-  ne_admin_name: "Portugal"
+  name_en: Portugal
+  ne_admin_name: Portugal
+  capital: Lisbon
 - iso3: PRY
   iso2: PY
-  name_en: "Paraguay"
-  ne_admin_name: "Paraguay"
+  name_en: Paraguay
+  ne_admin_name: Paraguay
+  capital: Asunción
 - iso3: QAT
   iso2: QA
-  name_en: "Qatar"
-  ne_admin_name: "Qatar"
+  name_en: Qatar
+  ne_admin_name: Qatar
+  capital: Doha
 - iso3: ROU
   iso2: RO
-  name_en: "Romania"
-  ne_admin_name: "Romania"
+  name_en: Romania
+  ne_admin_name: Romania
+  capital: Bucharest
 - iso3: RUS
   iso2: RU
-  name_en: "Russia"
-  ne_admin_name: "Russia"
+  name_en: Russia
+  ne_admin_name: Russia
   aliases:
-    - "Russian Federation"
+  - Russian Federation
+  capital: Moscow
 - iso3: RWA
   iso2: RW
-  name_en: "Rwanda"
-  ne_admin_name: "Rwanda"
+  name_en: Rwanda
+  ne_admin_name: Rwanda
+  capital: Kigali
 - iso3: SAU
   iso2: SA
-  name_en: "Saudi Arabia"
-  ne_admin_name: "Saudi Arabia"
+  name_en: Saudi Arabia
+  ne_admin_name: Saudi Arabia
+  capital: Riyadh
 - iso3: SDN
   iso2: SD
-  name_en: "Sudan"
-  ne_admin_name: "Sudan"
+  name_en: Sudan
+  ne_admin_name: Sudan
+  capital: Khartoum
 - iso3: SEN
   iso2: SN
-  name_en: "Senegal"
-  ne_admin_name: "Senegal"
+  name_en: Senegal
+  ne_admin_name: Senegal
+  capital: Dakar
 - iso3: SGP
   iso2: SG
-  name_en: "Singapore"
-  ne_admin_name: "Singapore"
+  name_en: Singapore
+  ne_admin_name: Singapore
+  capital: Singapore
 - iso3: SLB
   iso2: SB
-  name_en: "Solomon Islands"
-  ne_admin_name: "Solomon Islands"
+  name_en: Solomon Islands
+  ne_admin_name: Solomon Islands
+  capital: Honiara
 - iso3: SLE
   iso2: SL
-  name_en: "Sierra Leone"
-  ne_admin_name: "Sierra Leone"
+  name_en: Sierra Leone
+  ne_admin_name: Sierra Leone
+  capital: Freetown
 - iso3: SLV
   iso2: SV
-  name_en: "El Salvador"
-  ne_admin_name: "El Salvador"
+  name_en: El Salvador
+  ne_admin_name: El Salvador
+  capital: San Salvador
 - iso3: SMR
   iso2: SM
-  name_en: "San Marino"
-  ne_admin_name: "San Marino"
+  name_en: San Marino
+  ne_admin_name: San Marino
+  capital: San Marino
 - iso3: SOM
   iso2: SO
-  name_en: "Somalia"
-  ne_admin_name: "Somalia"
+  name_en: Somalia
+  ne_admin_name: Somalia
+  capital: Mogadishu
 - iso3: SRB
   iso2: RS
-  name_en: "Serbia"
-  ne_admin_name: "Serbia"
+  name_en: Serbia
+  ne_admin_name: Serbia
+  capital: Belgrade
 - iso3: SSD
   iso2: SS
-  name_en: "South Sudan"
-  ne_admin_name: "South Sudan"
+  name_en: South Sudan
+  ne_admin_name: South Sudan
+  capital: Juba
 - iso3: STP
   iso2: ST
-  name_en: "São Tomé and Príncipe"
-  ne_admin_name: "São Tomé and Príncipe"
+  name_en: São Tomé and Príncipe
+  ne_admin_name: São Tomé and Príncipe
+  capital: São Tomé
 - iso3: SUR
   iso2: SR
-  name_en: "Suriname"
-  ne_admin_name: "Suriname"
+  name_en: Suriname
+  ne_admin_name: Suriname
+  capital: Paramaribo
 - iso3: SVK
   iso2: SK
-  name_en: "Slovakia"
-  ne_admin_name: "Slovakia"
+  name_en: Slovakia
+  ne_admin_name: Slovakia
+  capital: Bratislava
 - iso3: SVN
   iso2: SI
-  name_en: "Slovenia"
-  ne_admin_name: "Slovenia"
+  name_en: Slovenia
+  ne_admin_name: Slovenia
+  capital: Ljubljana
 - iso3: SWE
   iso2: SE
-  name_en: "Sweden"
-  ne_admin_name: "Sweden"
+  name_en: Sweden
+  ne_admin_name: Sweden
+  capital: Stockholm
 - iso3: SWZ
   iso2: SZ
-  name_en: "Eswatini"
-  ne_admin_name: "Eswatini"
+  name_en: Eswatini
+  ne_admin_name: Eswatini
   aliases:
-    - "Swaziland"
+  - Swaziland
+  capital: Lobamba
 - iso3: SYC
   iso2: SC
-  name_en: "Seychelles"
-  ne_admin_name: "Seychelles"
+  name_en: Seychelles
+  ne_admin_name: Seychelles
+  capital: Victoria
 - iso3: SYR
   iso2: SY
-  name_en: "Syria"
-  ne_admin_name: "Syria"
+  name_en: Syria
+  ne_admin_name: Syria
   aliases:
-    - "Syrian Arab Republic"
+  - Syrian Arab Republic
+  capital: Damascus
 - iso3: TCD
   iso2: TD
-  name_en: "Chad"
-  ne_admin_name: "Chad"
+  name_en: Chad
+  ne_admin_name: Chad
+  capital: N'Djamena
 - iso3: TGO
   iso2: TG
-  name_en: "Togo"
-  ne_admin_name: "Togo"
+  name_en: Togo
+  ne_admin_name: Togo
+  capital: Lomé
 - iso3: THA
   iso2: TH
-  name_en: "Thailand"
-  ne_admin_name: "Thailand"
+  name_en: Thailand
+  ne_admin_name: Thailand
+  capital: Bangkok
 - iso3: TJK
   iso2: TJ
-  name_en: "Tajikistan"
-  ne_admin_name: "Tajikistan"
+  name_en: Tajikistan
+  ne_admin_name: Tajikistan
+  capital: Dushanbe
 - iso3: TKM
   iso2: TM
-  name_en: "Turkmenistan"
-  ne_admin_name: "Turkmenistan"
+  name_en: Turkmenistan
+  ne_admin_name: Turkmenistan
+  capital: Ashgabat
 - iso3: TLS
   iso2: TL
-  name_en: "Timor-Leste"
-  ne_admin_name: "Timor-Leste"
+  name_en: Timor-Leste
+  ne_admin_name: Timor-Leste
+  capital: Dili
 - iso3: TON
   iso2: TO
-  name_en: "Tonga"
-  ne_admin_name: "Tonga"
+  name_en: Tonga
+  ne_admin_name: Tonga
+  capital: Nuku'alofa
 - iso3: TTO
   iso2: TT
-  name_en: "Trinidad and Tobago"
-  ne_admin_name: "Trinidad and Tobago"
+  name_en: Trinidad and Tobago
+  ne_admin_name: Trinidad and Tobago
+  capital: Port of Spain
 - iso3: TUN
   iso2: TN
-  name_en: "Tunisia"
-  ne_admin_name: "Tunisia"
+  name_en: Tunisia
+  ne_admin_name: Tunisia
+  capital: Tunis
 - iso3: TUR
   iso2: TR
-  name_en: "Turkey"
-  ne_admin_name: "Turkey"
+  name_en: Turkey
+  ne_admin_name: Turkey
+  capital: Ankara
 - iso3: TUV
   iso2: TV
-  name_en: "Tuvalu"
-  ne_admin_name: "Tuvalu"
+  name_en: Tuvalu
+  ne_admin_name: Tuvalu
+  capital: Funafuti
 - iso3: TZA
   iso2: TZ
-  name_en: "Tanzania"
-  ne_admin_name: "Tanzania"
+  name_en: Tanzania
+  ne_admin_name: Tanzania
   aliases:
-    - "United Republic of Tanzania"
+  - United Republic of Tanzania
+  capital: Dodoma
 - iso3: UGA
   iso2: UG
-  name_en: "Uganda"
-  ne_admin_name: "Uganda"
+  name_en: Uganda
+  ne_admin_name: Uganda
+  capital: Kampala
 - iso3: UKR
   iso2: UA
-  name_en: "Ukraine"
-  ne_admin_name: "Ukraine"
+  name_en: Ukraine
+  ne_admin_name: Ukraine
+  capital: Kiev
 - iso3: URY
   iso2: UY
-  name_en: "Uruguay"
-  ne_admin_name: "Uruguay"
+  name_en: Uruguay
+  ne_admin_name: Uruguay
+  capital: Montevideo
 - iso3: USA
   iso2: US
-  name_en: "United States"
-  ne_admin_name: "United States of America"
+  name_en: United States
+  ne_admin_name: United States of America
   aliases:
-    - "United States of America"
+  - United States of America
+  capital: Washington D.C.
 - iso3: UZB
   iso2: UZ
-  name_en: "Uzbekistan"
-  ne_admin_name: "Uzbekistan"
+  name_en: Uzbekistan
+  ne_admin_name: Uzbekistan
+  capital: Tashkent
 - iso3: VCT
   iso2: VC
-  name_en: "Saint Vincent and the Grenadines"
-  ne_admin_name: "Saint Vincent and the Grenadines"
+  name_en: Saint Vincent and the Grenadines
+  ne_admin_name: Saint Vincent and the Grenadines
+  capital: Kingstown
 - iso3: VEN
   iso2: VE
-  name_en: "Venezuela"
-  ne_admin_name: "Venezuela"
+  name_en: Venezuela
+  ne_admin_name: Venezuela
   aliases:
-    - "Venezuela, Bolivarian Republic of"
+  - Venezuela, Bolivarian Republic of
+  capital: Caracas
 - iso3: VNM
   iso2: VN
-  name_en: "Vietnam"
-  ne_admin_name: "Vietnam"
+  name_en: Vietnam
+  ne_admin_name: Vietnam
   aliases:
-    - "Viet Nam"
+  - Viet Nam
+  capital: Hanoi
 - iso3: VUT
   iso2: VU
-  name_en: "Vanuatu"
-  ne_admin_name: "Vanuatu"
+  name_en: Vanuatu
+  ne_admin_name: Vanuatu
+  capital: Port Vila
 - iso3: WSM
   iso2: WS
-  name_en: "Samoa"
-  ne_admin_name: "Samoa"
+  name_en: Samoa
+  ne_admin_name: Samoa
+  capital: Apia
 - iso3: YEM
   iso2: YE
-  name_en: "Yemen"
-  ne_admin_name: "Yemen"
+  name_en: Yemen
+  ne_admin_name: Yemen
+  capital: Sana'a
 - iso3: ZAF
   iso2: ZA
-  name_en: "South Africa"
-  ne_admin_name: "South Africa"
+  name_en: South Africa
+  ne_admin_name: South Africa
+  capital: Pretoria
 - iso3: ZMB
   iso2: ZM
-  name_en: "Zambia"
-  ne_admin_name: "Zambia"
+  name_en: Zambia
+  ne_admin_name: Zambia
+  capital: Lusaka
 - iso3: ZWE
   iso2: ZW
-  name_en: "Zimbabwe"
-  ne_admin_name: "Zimbabwe"
+  name_en: Zimbabwe
+  ne_admin_name: Zimbabwe
+  capital: Harare

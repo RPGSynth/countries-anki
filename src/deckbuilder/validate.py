@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Iterable
 
 from .config import AppConfig
-from .cities import CityOverride, load_cities_overrides
+from .cities import CityOverride, load_cities_overrides, names_match
 from .countries import load_un_members
 from .flags import load_flags_overrides
 from .io_ne import NaturalEarthRepository
@@ -167,8 +167,10 @@ class Validator:
         invalid_geometry_count: list[str] = []
         multi_geometry_rows: list[str] = []
         missing_capitals: list[str] = []
-        missing_capital_hints: dict[str, list[str]] = {}
+        missing_named_capitals: list[str] = []
+        auto_relabel_capitals: list[str] = []
         override_capital_used = 0
+        manual_capital_used = 0
 
         for country in countries:
             geometry_rows = repo.extract_country_geometry(
@@ -193,38 +195,40 @@ class Validator:
                 capital_fields=self.cfg.cities.capital_fields,
                 iso_col=places_iso_col,
             )
-            has_capital_in_dataset = any(city.is_capital for city in city_candidates)
-            has_capital_override = bool(
-                country.iso3 in city_overrides
-                and (
-                    city_overrides[country.iso3].capital is not None
-                    or city_overrides[country.iso3].manual_capital is not None
-                )
+            expected_capital_found = any(
+                names_match(city.name, country.capital) for city in city_candidates
             )
-            if not has_capital_in_dataset and not has_capital_override:
-                missing_capitals.append(country.iso3)
-                if city_candidates:
-                    ordered = sorted(
-                        city_candidates,
-                        key=lambda c: (
-                            c.scalerank if c.scalerank is not None else 9999,
-                            -(c.pop_max if c.pop_max is not None else -1),
-                            c.name.casefold(),
-                        ),
+
+            override = city_overrides.get(country.iso3)
+            override_capital_found = False
+            has_manual_capital = False
+            if override is not None:
+                if override.capital is not None:
+                    override_capital_found = any(
+                        names_match(city.name, override.capital) for city in city_candidates
                     )
-                    unique_names: list[str] = []
-                    seen_names: set[str] = set()
-                    for candidate in ordered:
-                        folded = candidate.name.casefold()
-                        if folded in seen_names:
-                            continue
-                        seen_names.add(folded)
-                        unique_names.append(candidate.name)
-                        if len(unique_names) >= 5:
-                            break
-                    missing_capital_hints[country.iso3] = unique_names
-            if has_capital_override and not has_capital_in_dataset:
+                if override.manual_capital is not None:
+                    has_manual_capital = True
+
+            if (
+                not expected_capital_found
+                and not override_capital_found
+                and not has_manual_capital
+                and not city_candidates
+            ):
+                missing_capitals.append(country.iso3)
+                missing_named_capitals.append(f"{country.iso3}({country.capital})")
+            elif (
+                not expected_capital_found
+                and not override_capital_found
+                and not has_manual_capital
+                and city_candidates
+            ):
+                auto_relabel_capitals.append(f"{country.iso3}({country.capital})")
+            if override_capital_found and not expected_capital_found:
                 override_capital_used += 1
+            if has_manual_capital and not expected_capital_found:
+                manual_capital_used += 1
 
         if invalid_geometry_count:
             self._add_quality_issue(
@@ -243,27 +247,27 @@ class Validator:
         if missing_capitals:
             self._add_quality_issue(
                 report,
-                "UN countries missing a detected capital in populated places and no override: "
-                f"{_format_code_list(sorted(missing_capitals))}",
+                "UN countries whose configured capitals are not present in populated places and no override is available: "
+                f"{_format_code_list(sorted(missing_named_capitals))}",
                 strict_data_files=strict_data_files,
             )
             for iso3 in sorted(missing_capitals):
-                candidates = missing_capital_hints.get(iso3, [])
-                if candidates:
-                    report.add_info(
-                        f"Capital override hint for {iso3}: candidate city names = "
-                        f"{_format_code_list(candidates, limit=5)}"
-                    )
-                else:
-                    report.add_info(
-                        f"Capital override hint for {iso3}: no populated-place candidates found in dataset."
-                    )
+                report.add_info(
+                    f"Capital override hint for {iso3}: no populated-place candidates found in dataset."
+                )
+        if auto_relabel_capitals:
+            report.add_warning(
+                "Configured capital names not found in populated places; selection will auto-relabel suspected "
+                f"capital cities: {_format_code_list(sorted(auto_relabel_capitals))}"
+            )
 
         report.add_info(
             "Natural Earth check summary: "
             f"countries={len(countries)}, "
             f"admin0_rows={len(admin0_df)}, populated_places_rows={len(places_df)}, "
-            f"capital_overrides_used={override_capital_used}"
+            f"capital_name_overrides_used={override_capital_used}, "
+            f"manual_capital_overrides_used={manual_capital_used}, "
+            f"auto_capital_relabels_planned={len(auto_relabel_capitals)}"
         )
 
     @staticmethod

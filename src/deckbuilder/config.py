@@ -209,9 +209,18 @@ class CitiesConfig:
 
     @classmethod
     def from_mapping(cls, raw: Mapping[str, Any]) -> CitiesConfig:
+        default_n = _int(raw.get("default_n"), "cities.default_n")
+        min_n_for_tiny = _int(raw.get("min_n_for_tiny"), "cities.min_n_for_tiny")
+        if default_n < 0:
+            raise ValueError("cities.default_n must be >= 0")
+        if min_n_for_tiny < 0:
+            raise ValueError("cities.min_n_for_tiny must be >= 0")
+        if min_n_for_tiny > default_n:
+            raise ValueError("cities.min_n_for_tiny cannot be greater than cities.default_n")
+
         return cls(
-            default_n=_int(raw.get("default_n"), "cities.default_n"),
-            min_n_for_tiny=_int(raw.get("min_n_for_tiny"), "cities.min_n_for_tiny"),
+            default_n=default_n,
+            min_n_for_tiny=min_n_for_tiny,
             tiny_country_bbox_deg=TinyCountryBBoxConfig.from_mapping(
                 _mapping(raw.get("tiny_country_bbox_deg"), "cities.tiny_country_bbox_deg")
             ),

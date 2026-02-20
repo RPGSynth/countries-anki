@@ -122,7 +122,7 @@ class NaturalEarthRepository:
         places_df: Any,
         *,
         iso3: str,
-        capital_fields: Sequence[str],
+        capital_fields: Sequence[str] | None = None,
         iso_col: str | None = None,
     ) -> list[CityRecord]:
         """Extract city records for one country from populated places.
@@ -142,10 +142,11 @@ class NaturalEarthRepository:
             raise ValueError("Populated places dataset missing required name/lon/lat columns")
 
         capital_cols: list[str] = []
-        for field in capital_fields:
-            col = _first_existing_column(places_df.columns, [field])
-            if col:
-                capital_cols.append(col)
+        if capital_fields is not None:
+            for field in capital_fields:
+                col = _first_existing_column(places_df.columns, [field])
+                if col:
+                    capital_cols.append(col)
 
         subset = places_df[places_df[place_iso_col] == iso3]
         records: list[CityRecord] = []
@@ -161,7 +162,7 @@ class NaturalEarthRepository:
                 continue
             scalerank = self._to_int_or_none(row_dict.get(scalerank_col)) if scalerank_col else None
             pop_max = self._to_int_or_none(row_dict.get(pop_col)) if pop_col else None
-            is_capital = self._infer_capital(row_dict, capital_cols)
+            is_capital = self._infer_capital(row_dict, capital_cols) if capital_cols else False
             try:
                 lon = float(lon_val)
                 lat = float(lat_val)
