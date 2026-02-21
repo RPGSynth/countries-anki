@@ -56,6 +56,7 @@ def generate_inspection_report(
             tiny_bbox_width=cfg.cities.tiny_country_bbox_deg.width,
             tiny_bbox_height=cfg.cities.tiny_country_bbox_deg.height,
             tiny_area=cfg.cities.tiny_country_area_deg2,
+            maps_dir=cfg.paths.maps_dir,
         )
         rows.append(row)
 
@@ -123,6 +124,7 @@ def _analyze_country(
     tiny_bbox_width: float,
     tiny_bbox_height: float,
     tiny_area: float,
+    maps_dir: Path,
 ) -> dict[str, Any]:
     geometry_rows = repo.extract_country_geometry(admin0_df, country.iso3, iso_col=admin_iso_col)
     geometry_row_count = int(len(geometry_rows))
@@ -186,6 +188,9 @@ def _analyze_country(
             "force_exclude": list(override.force_exclude),
         }
 
+    map_name = f"map_{country.iso3}.png"
+    map_path = maps_dir / map_name
+
     return {
         "iso3": country.iso3,
         "name_en": country.name_en,
@@ -203,6 +208,8 @@ def _analyze_country(
         "selection_error": selection_error,
         "override": override_payload,
         "candidate_preview": [_city_to_dict(city) for city in sorted(candidates, key=_city_debug_sort)[:12]],
+        "map_name": map_name,
+        "map_exists": map_path.exists(),
     }
 
 
@@ -218,6 +225,7 @@ def _build_summary(rows: Sequence[dict[str, Any]]) -> dict[str, int]:
     with_multi_geometry = sum(1 for row in rows if int(row["geometry_row_count"]) > 1)
     with_no_geometry = sum(1 for row in rows if int(row["geometry_row_count"]) == 0)
     with_tiny_country = sum(1 for row in rows if bool(row["tiny_country"]))
+    with_map = sum(1 for row in rows if bool(row["map_exists"]))
     with_missing_expected_capital = sum(
         1 for row in rows if not bool(row["expected_capital_found_in_dataset"])
     )
@@ -232,6 +240,7 @@ def _build_summary(rows: Sequence[dict[str, Any]]) -> dict[str, int]:
         "with_multi_geometry": with_multi_geometry,
         "with_no_geometry": with_no_geometry,
         "with_tiny_country": with_tiny_country,
+        "with_map": with_map,
         "with_missing_expected_capital": with_missing_expected_capital,
         "with_manual_override": with_manual_override,
     }
@@ -247,6 +256,11 @@ def _write_html_report(*, payload: dict[str, Any], output_html: Path) -> None:
         status = "ok" if row["selection_error"] is None else "error"
         selected_capital = row["selected_capital"]["name"] if row["selected_capital"] else "-"
         expected_found = "yes" if row["expected_capital_found_in_dataset"] else "no"
+        map_preview = (
+            f"<img src='../media/maps/{escape(row['map_name'])}' alt='Map {escape(row['iso3'])}' width='180'>"
+            if row["map_exists"]
+            else "<span class='muted'>not rendered</span>"
+        )
         override_type = "-"
         if row["override"]:
             if row["override"]["manual_capital"] is not None:
@@ -284,6 +298,7 @@ def _write_html_report(*, payload: dict[str, Any], output_html: Path) -> None:
                     f"  <td>{row['candidate_city_count']}</td>",
                     f"  <td>{escape(row['expected_capital'])}</td>",
                     f"  <td>{escape(expected_found)}</td>",
+                    f"  <td>{map_preview}</td>",
                     f"  <td>{escape(selected_capital)}</td>",
                     f"  <td>{escape(override_type)}</td>",
                     f"  <td class='{status}'>{escape(row['selection_error'] or 'OK')}</td>",
@@ -312,6 +327,8 @@ def _write_html_report(*, payload: dict[str, Any], output_html: Path) -> None:
             "    th { background: #f4f4f4; }",
             "    td.ok { color: #1f7a1f; font-weight: 700; }",
             "    td.error { color: #b22d2d; font-weight: 700; }",
+            "    .muted { color: #666; font-size: 12px; }",
+            "    table img { border: 1px solid #ddd; border-radius: 4px; background: #fff; }",
             "    details > pre { white-space: pre-wrap; margin: 8px 0 0 0; background: #fafafa; padding: 8px; border-radius: 6px; }",
             "  </style>",
             "</head>",
@@ -334,6 +351,7 @@ def _write_html_report(*, payload: dict[str, Any], output_html: Path) -> None:
             f"      <div class='kpi'>Multi geometry: {summary['with_multi_geometry']}</div>",
             f"      <div class='kpi'>No geometry: {summary['with_no_geometry']}</div>",
             f"      <div class='kpi'>Tiny country (auto-N eligible): {summary['with_tiny_country']}</div>",
+            f"      <div class='kpi'>Rendered maps available: {summary['with_map']}</div>",
             f"      <div class='kpi'>Missing expected capital in dataset: {summary['with_missing_expected_capital']}</div>",
             f"      <div class='kpi'>Manual overrides: {summary['with_manual_override']}</div>",
             "    </div>",
@@ -347,6 +365,7 @@ def _write_html_report(*, payload: dict[str, Any], output_html: Path) -> None:
             "        <th>City Candidates</th>",
             "        <th>Expected Capital</th>",
             "        <th>Expected Found</th>",
+            "        <th>Map</th>",
             "        <th>Selected Capital</th>",
             "        <th>Override</th>",
             "        <th>Selection Status</th>",

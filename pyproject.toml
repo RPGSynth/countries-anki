@@ -19,6 +19,8 @@ dependencies = [
   "matplotlib>=3.9.2",
   "shapely>=2.0.6",
   "geopandas>=1.0.1",
+  "pyproj>=3.7.0",
+  "contextily>=1.6.2",
   "genanki>=0.13.1",
   "cairosvg>=2.7.1"
 ]

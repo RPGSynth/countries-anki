@@ -80,6 +80,7 @@ class PathsConfig:
     un_members: Path
     cities_overrides: Path
     flags_overrides: Path
+    render_overrides: Path
     build_root: Path
     maps_dir: Path
     flags_dir: Path
@@ -94,6 +95,7 @@ class PathsConfig:
             self.un_members,
             self.cities_overrides,
             self.flags_overrides,
+            self.render_overrides,
         )
 
     @property
@@ -126,6 +128,9 @@ class PathsConfig:
             ),
             flags_overrides=_path_from_cfg(
                 raw.get("flags_overrides"), "paths.flags_overrides", root_dir
+            ),
+            render_overrides=_path_from_cfg(
+                raw.get("render_overrides"), "paths.render_overrides", root_dir
             ),
             build_root=_path_from_cfg(raw.get("build_root"), "paths.build_root", root_dir),
             maps_dir=_path_from_cfg(raw.get("maps_dir"), "paths.maps_dir", root_dir),
@@ -290,6 +295,28 @@ class RenderExtentConfig:
 
 
 @dataclass(frozen=True, slots=True)
+class RenderBackgroundConfig:
+    mode: str
+
+    @classmethod
+    def from_mapping(cls, raw: Mapping[str, Any]) -> RenderBackgroundConfig:
+        mode = _str(raw.get("mode"), "render.background.mode").casefold()
+        if mode == "flat":
+            mode = "google_flat"
+        allowed = {"white", "google_flat", "satellite"}
+        if mode not in allowed:
+            raise ValueError(
+                "render.background.mode must be one of: "
+                + ", ".join(sorted(allowed))
+            )
+        return cls(mode=mode)
+
+    @classmethod
+    def default(cls) -> RenderBackgroundConfig:
+        return cls(mode="google_flat")
+
+
+@dataclass(frozen=True, slots=True)
 class RenderStyleConfig:
     country_outline_width: float
     country_outline_color: str
@@ -353,17 +380,25 @@ class RenderConfig:
     image: RenderImageConfig
     projection: ProjectionConfig
     extent: RenderExtentConfig
+    background: RenderBackgroundConfig
     style: RenderStyleConfig
     labels: LabelsConfig
 
     @classmethod
     def from_mapping(cls, raw: Mapping[str, Any]) -> RenderConfig:
+        background_raw = raw.get("background")
+        background = (
+            RenderBackgroundConfig.default()
+            if background_raw is None
+            else RenderBackgroundConfig.from_mapping(_mapping(background_raw, "render.background"))
+        )
         return cls(
             image=RenderImageConfig.from_mapping(_mapping(raw.get("image"), "render.image")),
             projection=ProjectionConfig.from_mapping(
                 _mapping(raw.get("projection"), "render.projection")
             ),
             extent=RenderExtentConfig.from_mapping(_mapping(raw.get("extent"), "render.extent")),
+            background=background,
             style=RenderStyleConfig.from_mapping(_mapping(raw.get("style"), "render.style")),
             labels=LabelsConfig.from_mapping(_mapping(raw.get("labels"), "render.labels")),
         )

@@ -12,6 +12,8 @@ from .countries import load_un_members
 from .flags import load_flags_overrides
 from .io_ne import NaturalEarthRepository
 from .models import CountrySpec
+from .qa import write_qa_index
+from .render_overrides import load_render_overrides
 
 
 @dataclass(slots=True)
@@ -46,12 +48,14 @@ class Validator:
         countries = self._validate_un_members(report)
         city_overrides = self._validate_cities_overrides(report)
         self._validate_flags_overrides(report)
+        self._validate_render_overrides(report)
         self._validate_natural_earth(
             report,
             countries=countries,
             city_overrides=city_overrides,
             strict_data_files=strict_data_files,
         )
+        self._validate_generated_artifacts(report, countries=countries)
         return report
 
     def _validate_config_paths(self, report: ValidationReport, *, strict_data_files: bool) -> None:
@@ -103,6 +107,13 @@ class Validator:
             report.add_info(f"Loaded {len(flag_overrides)} flag override entries")
         except Exception as exc:
             report.add_error(f"Failed parsing flags overrides: {exc}")
+
+    def _validate_render_overrides(self, report: ValidationReport) -> None:
+        try:
+            render_overrides = load_render_overrides(self.cfg.paths.render_overrides)
+            report.add_info(f"Loaded {len(render_overrides)} render override entries")
+        except Exception as exc:
+            report.add_error(f"Failed parsing render overrides: {exc}")
 
     def _validate_natural_earth(
         self,
@@ -269,6 +280,59 @@ class Validator:
             f"manual_capital_overrides_used={manual_capital_used}, "
             f"auto_capital_relabels_planned={len(auto_relabel_capitals)}"
         )
+
+    def _validate_generated_artifacts(
+        self,
+        report: ValidationReport,
+        *,
+        countries: list[CountrySpec],
+    ) -> None:
+        if not countries:
+            return
+
+        missing_maps: list[str] = []
+        missing_flags: list[str] = []
+        for country in countries:
+            map_path = self.cfg.paths.maps_dir / f"map_{country.iso3}.png"
+            flag_path = self.cfg.paths.flags_dir / f"flag_{country.iso3}.png"
+            if not map_path.exists():
+                missing_maps.append(country.iso3)
+            if not flag_path.exists():
+                missing_flags.append(country.iso3)
+
+        map_present = len(countries) - len(missing_maps)
+        flag_present = len(countries) - len(missing_flags)
+        report.add_info(
+            "Media coverage summary: "
+            f"maps_present={map_present}/{len(countries)}, "
+            f"flags_present={flag_present}/{len(countries)}"
+        )
+
+        if missing_maps:
+            report.add_warning(
+                "Missing rendered maps: "
+                f"{_format_code_list(sorted(missing_maps))}"
+            )
+        if missing_flags:
+            report.add_warning(
+                "Missing flags (expected before Milestone 4): "
+                f"{_format_code_list(sorted(missing_flags))}"
+            )
+
+        if self.cfg.qa.generate_index:
+            try:
+                qa_path = write_qa_index(
+                    countries=countries,
+                    maps_dir=self.cfg.paths.maps_dir,
+                    flags_dir=self.cfg.paths.flags_dir,
+                    output_html=self.cfg.paths.qa_dir / "index.html",
+                    thumbnail_width_px=self.cfg.qa.thumbnail_width_px,
+                    max_columns=self.cfg.qa.max_columns,
+                )
+            except Exception as exc:
+                report.add_warning(f"Failed generating QA index: {exc}")
+            else:
+                report.add_info(f"QA index updated at {qa_path}")
 
     @staticmethod
     def _check_exists(report: ValidationReport, path: Path, *, as_error: bool) -> None:

@@ -4,7 +4,7 @@ Automated, reproducible pipeline skeleton for generating an Anki deck with one n
 - Front: country name + rendered map with main cities
 - Back: country flag
 
-This repository currently provides a production-grade architecture and module boundaries. Core business logic (map rendering, Wikimedia fetch, deck packaging) is intentionally stubbed for iterative implementation.
+This repository provides a production-grade architecture and a working Milestone 3 map-rendering pipeline. Flags and deck packaging are still planned in later milestones.
 
 ## Layout
 
@@ -17,6 +17,7 @@ countries-anki/
     un_members.yaml
     cities_overrides.yaml
     flags_overrides.yaml
+    render_overrides.yaml
     natural_earth/
   src/
     deckbuilder/
@@ -54,6 +55,7 @@ countries-anki/
 python -m pip install -e .
 python -m deckbuilder validate --config config.yaml
 python -m deckbuilder select-cities --config config.yaml
+python -m deckbuilder render-maps --config config.yaml
 python -m deckbuilder build --config config.yaml
 python -m deckbuilder inspect --config config.yaml --limit 40
 ```
@@ -63,13 +65,18 @@ Or using console script:
 ```bash
 deckbuilder validate --config config.yaml
 deckbuilder select-cities --config config.yaml
+deckbuilder render-maps --config config.yaml
+deckbuilder render-maps --config config.yaml --debug-render --limit-countries 3
+deckbuilder render-maps --config config.yaml --debug-render --country BEL --country CAN --country MCO --clean-maps
 deckbuilder build --config config.yaml
 deckbuilder inspect --config config.yaml --country FRA --country CIV
 ```
 
+Open `build/qa/index.html` to visually review generated maps.
+
 ## Current Status
 
-- Implemented:
+  - Implemented:
   - Typed config loading and validation
   - Canonical capital source from `data/un_members.yaml` (`capital` field per country)
   - Automatic capital relabel fallback: if canonical capital name is missing in populated places, select a suspected capital city in-country and relabel it to the canonical name
@@ -79,14 +86,27 @@ deckbuilder inspect --config config.yaml --country FRA --country CIV
     - tiny-country automatic N reduction (`min_n_for_tiny`)
     - override-aware capital/city resolution
     - per-country JSON audit output at `build/manifests/city_selection.json`
+  - Milestone 3 deterministic map rendering (`render-maps`) with:
+    - fixed-size PNG output to `build/media/maps/map_{ISO3}.png`
+    - admin0 geometry merge per country (multi-row dissolve/union for rendering)
+    - country-adaptive projection (reduces high-latitude horizontal stretching)
+    - adaptive tiny-country/inset extents so microstates render larger in frame
+    - surrounding-country boundary context as dotted outlines (no extra city labels)
+    - configurable background mode: `white`, `google_flat` (default), `satellite`
+    - real tile basemaps (no-label flat provider for city-overlay clarity)
+    - city markers + capital marker styling from `config.yaml`
+    - deterministic label placement with collision dropping (capital never dropped)
+    - per-country render overrides via `data/render_overrides.yaml`:
+      - `outline` (force country outline on/off)
+      - `center_on_capital` (force capital-centered viewport on/off)
+      - `inset` (force insets on/off)
   - CLI command structure (`build`, `validate`, `select-cities`, `inspect`, `render-maps`, `fetch-flags`, `build-deck`)
   - Milestone 1 validation: Natural Earth loading, UN ISO3 admin0 coverage checks, geometry cardinality checks, and capital coverage checks (with overrides)
-  - Inspection report command: visual HTML + JSON diagnostics for joins and city selection outputs
+  - Inspection report command: visual HTML + JSON diagnostics for joins, city selection outputs, and map availability
   - Build directory/bootstrap, logging, manifest writing
-  - QA index skeleton generation
-  - `build` now runs validation + city-selection audit before downstream stub steps
+  - QA index generation with per-country map/flag status and previews
+  - `build` now runs validation + city-selection + map rendering before downstream stub steps
 - Stubbed (planned milestones):
-  - Deterministic map rendering
   - Wikimedia flag retrieval and attribution harvesting
   - `genanki` deck packaging
 

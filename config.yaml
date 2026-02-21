@@ -11,6 +11,7 @@ paths:
   un_members: "data/un_members.yaml"
   cities_overrides: "data/cities_overrides.yaml"
   flags_overrides: "data/flags_overrides.yaml"
+  render_overrides: "data/render_overrides.yaml"
 
   build_root: "build"
   maps_dir: "build/media/maps"
@@ -25,7 +26,7 @@ country_policy:
   strict: true
 
 cities:
-  default_n: 6
+  default_n: 4
   min_n_for_tiny: 0
   tiny_country_bbox_deg:
     width: 1.2
@@ -61,14 +62,19 @@ render:
       min: -85
       max: 85
 
+  background:
+    # one of: "white", "google_flat" (or alias: "flat"), "satellite"
+    # non-white modes pull real web tiles and cache them locally
+    mode: "google_flat"
+
   style:
     country_outline_width: 1.6
     country_outline_color: "#000000"
     coastline: false
-    city_marker_color: "#000000"
+    city_marker_color: "#C8102E"
     city_marker_size: 14
     capital_marker_size: 44
-    label_color: "#000000"
+    label_color: "#C8102E"
     font_family: "DejaVu Sans"
     font_size_city: 12
     font_size_capital: 14

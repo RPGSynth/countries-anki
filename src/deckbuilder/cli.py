@@ -11,8 +11,9 @@ from .city_selection import format_city_selection_lines, run_city_selection
 from .config import AppConfig, load_config
 from .countries import load_un_members
 from .inspect_report import generate_inspection_report
-from .models import BuildManifest
+from .models import BuildManifest, CountrySpec
 from .qa import write_qa_index
+from .render import format_render_lines, run_render_maps
 from .util import detect_git_commit, ensure_directories, sha256_file, setup_logging, write_json
 from .validate import Validator, format_report_lines
 
@@ -22,7 +23,7 @@ LOGGER = logging.getLogger("deckbuilder.cli")
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="deckbuilder",
-        description="Countries Anki deck builder (skeleton architecture).",
+        description="Countries Anki deck builder.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -30,7 +31,7 @@ def _build_parser() -> argparse.ArgumentParser:
         p.add_argument("--config", default="config.yaml", help="Path to YAML config.")
         p.add_argument("--verbose", action="store_true", help="Enable debug logs.")
 
-    build_p = subparsers.add_parser("build", help="Run full build pipeline (skeleton mode).")
+    build_p = subparsers.add_parser("build", help="Run full build pipeline.")
     add_common(build_p)
     build_p.add_argument(
         "--strict-data-files",
@@ -57,8 +58,35 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Treat missing Natural Earth files as hard errors.",
     )
 
-    render_p = subparsers.add_parser("render-maps", help="Render maps only (not implemented yet).")
+    render_p = subparsers.add_parser("render-maps", help="Render maps only.")
     add_common(render_p)
+    render_p.add_argument(
+        "--strict-data-files",
+        action="store_true",
+        help="Treat missing Natural Earth files as hard errors.",
+    )
+    render_p.add_argument(
+        "--country",
+        action="append",
+        default=[],
+        help="ISO3 filter for rendering. Can be repeated.",
+    )
+    render_p.add_argument(
+        "--limit-countries",
+        type=int,
+        default=None,
+        help="Render only first N ISO3-sorted countries.",
+    )
+    render_p.add_argument(
+        "--debug-render",
+        action="store_true",
+        help="Enable live per-country render debug logs.",
+    )
+    render_p.add_argument(
+        "--clean-maps",
+        action="store_true",
+        help="Delete existing map_*.png files before rendering.",
+    )
 
     flags_p = subparsers.add_parser("fetch-flags", help="Fetch flags only (not implemented yet).")
     add_common(flags_p)
@@ -103,7 +131,7 @@ def _run_validate(cfg: AppConfig, *, strict_data_files: bool) -> int:
 
 
 def _run_build(cfg: AppConfig, *, strict_data_files: bool) -> int:
-    LOGGER.info("Starting build pipeline in skeleton mode.")
+    LOGGER.info("Starting build pipeline.")
 
     report = Validator(cfg).run(strict_data_files=strict_data_files)
     for line in format_report_lines(report):
@@ -119,6 +147,17 @@ def _run_build(cfg: AppConfig, *, strict_data_files: bool) -> int:
         LOGGER.error("Build aborted due to city selection errors.")
         return 1
 
+    render_report = run_render_maps(
+        cfg,
+        strict_data_files=strict_data_files,
+        selection_manifest_path=city_selection_report.output_path,
+    )
+    for line in format_render_lines(render_report):
+        LOGGER.info(line)
+    if not render_report.ok:
+        LOGGER.error("Build aborted due to map rendering errors.")
+        return 1
+
     countries = load_un_members(cfg.paths.un_members)
     qa_index_path: Path | None = None
     if cfg.qa.generate_index:
@@ -132,7 +171,6 @@ def _run_build(cfg: AppConfig, *, strict_data_files: bool) -> int:
         )
         LOGGER.info("QA index generated at %s", qa_index_path)
 
-    LOGGER.info("Render step: stub (Milestone 3 pending).")
     LOGGER.info("Flag step: stub (Milestone 4 pending).")
     LOGGER.info("Deck step: stub (Milestone 5 pending).")
 
@@ -143,7 +181,7 @@ def _run_build(cfg: AppConfig, *, strict_data_files: bool) -> int:
             steps={
                 "validate": "ok",
                 "select_cities": "ok" if city_selection_report.output_path else "skipped",
-                "render_maps": "stub",
+                "render_maps": "ok" if render_report.ok else "error",
                 "fetch_flags": "stub",
                 "build_deck": "stub",
                 "qa_index": "ok" if qa_index_path else "skipped",
@@ -155,6 +193,7 @@ def _run_build(cfg: AppConfig, *, strict_data_files: bool) -> int:
                     if city_selection_report.output_path is not None
                     else ""
                 ),
+                "maps_dir": str(cfg.paths.maps_dir),
                 "output_apkg": str(cfg.project.output_apkg),
             },
         )
@@ -162,7 +201,7 @@ def _run_build(cfg: AppConfig, *, strict_data_files: bool) -> int:
         write_json(manifest_path, manifest.to_dict())
         LOGGER.info("Build manifest written to %s", manifest_path)
 
-    LOGGER.info("Build finished (skeleton mode).")
+    LOGGER.info("Build finished.")
     return 0
 
 
@@ -193,6 +232,76 @@ def _run_select_cities(cfg: AppConfig, *, strict_data_files: bool) -> int:
     return 0 if report.ok else 1
 
 
+def _run_render_maps(
+    cfg: AppConfig,
+    *,
+    strict_data_files: bool,
+    countries: Sequence[str],
+    limit_countries: int | None,
+    debug_render: bool,
+    clean_maps: bool,
+) -> int:
+    effective_limit = limit_countries
+    if debug_render and effective_limit is None and not countries:
+        effective_limit = 3
+        LOGGER.info(
+            "[render-debug] No country filter/limit provided; using automatic limit=3 for fast debug."
+        )
+
+    if clean_maps:
+        removed = 0
+        for path in cfg.paths.maps_dir.glob("map_*.png"):
+            try:
+                path.unlink()
+                removed += 1
+            except OSError as exc:
+                LOGGER.warning("Failed removing old map file %s: %s", path, exc)
+        LOGGER.info("Cleaned %d existing map PNG files from %s", removed, cfg.paths.maps_dir)
+
+    city_selection_report = run_city_selection(cfg, strict_data_files=strict_data_files)
+    for line in format_city_selection_lines(city_selection_report):
+        LOGGER.info(line)
+    if not city_selection_report.ok:
+        return 1
+
+    render_report = run_render_maps(
+        cfg,
+        strict_data_files=strict_data_files,
+        selection_manifest_path=city_selection_report.output_path,
+        country_filter=countries,
+        limit_countries=effective_limit,
+        debug_render=debug_render,
+    )
+    for line in format_render_lines(render_report):
+        LOGGER.info(line)
+    if not render_report.ok:
+        return 1
+
+    if cfg.qa.generate_index:
+        qa_countries = _resolve_render_scope_countries(
+            cfg,
+            countries=countries,
+            limit_countries=effective_limit,
+        )
+        if countries or effective_limit is not None:
+            LOGGER.info(
+                "QA index scoped to render selection (%d countries).",
+                len(qa_countries),
+            )
+        else:
+            qa_countries = load_un_members(cfg.paths.un_members)
+        qa_index_path = write_qa_index(
+            countries=qa_countries,
+            maps_dir=cfg.paths.maps_dir,
+            flags_dir=cfg.paths.flags_dir,
+            output_html=cfg.paths.qa_dir / "index.html",
+            thumbnail_width_px=cfg.qa.thumbnail_width_px,
+            max_columns=cfg.qa.max_columns,
+        )
+        LOGGER.info("QA index generated at %s", qa_index_path)
+    return 0
+
+
 def _dispatch(args: argparse.Namespace) -> int:
     cfg = _load_and_setup(args)
     command = str(args.command)
@@ -206,7 +315,16 @@ def _dispatch(args: argparse.Namespace) -> int:
         strict = bool(args.strict_data_files) or cfg.country_policy.strict
         return _run_select_cities(cfg, strict_data_files=strict)
     if command == "render-maps":
-        return _stub_command("render-maps")
+        strict = bool(args.strict_data_files) or cfg.country_policy.strict
+        countries = [str(item) for item in args.country]
+        return _run_render_maps(
+            cfg,
+            strict_data_files=strict,
+            countries=countries,
+            limit_countries=args.limit_countries,
+            debug_render=bool(args.debug_render),
+            clean_maps=bool(args.clean_maps),
+        )
     if command == "fetch-flags":
         return _stub_command("fetch-flags")
     if command == "build-deck":
@@ -215,6 +333,21 @@ def _dispatch(args: argparse.Namespace) -> int:
         countries = [str(item) for item in args.country]
         return _run_inspect(cfg, countries=countries, limit=int(args.limit))
     raise ValueError(f"Unknown command: {command}")
+
+
+def _resolve_render_scope_countries(
+    cfg: AppConfig,
+    *,
+    countries: Sequence[str],
+    limit_countries: int | None,
+) -> list[CountrySpec]:
+    all_countries = sorted(load_un_members(cfg.paths.un_members), key=lambda item: item.iso3)
+    requested = {item.strip().upper() for item in countries if item and item.strip()}
+    if requested:
+        all_countries = [country for country in all_countries if country.iso3 in requested]
+    if limit_countries is not None:
+        all_countries = all_countries[:limit_countries]
+    return all_countries
 
 
 def main(argv: Sequence[str] | None = None) -> int:

@@ -181,6 +181,43 @@ class FlagOverride:
 
 
 @dataclass(frozen=True, slots=True)
+class RenderOverride:
+    """Per-country render behavior overrides."""
+
+    outline: bool | None = None
+    center_on_capital: bool | None = None
+    inset: bool | None = None
+    capital_zoom_pct: float | None = None
+    capital_polygon_as_main: bool | None = None
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, Any]) -> RenderOverride:
+        def _bool_or_none(field_name: str) -> bool | None:
+            raw = data.get(field_name)
+            if raw is None:
+                return None
+            if not isinstance(raw, bool):
+                raise ValueError(f"Expected bool for '{field_name}'")
+            return raw
+
+        def _float_or_none(field_name: str) -> float | None:
+            raw = data.get(field_name)
+            if raw is None:
+                return None
+            if isinstance(raw, bool) or not isinstance(raw, (int, float)):
+                raise ValueError(f"Expected number for '{field_name}'")
+            return float(raw)
+
+        return cls(
+            outline=_bool_or_none("outline"),
+            center_on_capital=_bool_or_none("center_on_capital"),
+            inset=_bool_or_none("inset"),
+            capital_zoom_pct=_float_or_none("capital_zoom_pct"),
+            capital_polygon_as_main=_bool_or_none("capital_polygon_as_main"),
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class SelectedCities:
     """Deterministic output of city selection."""
 

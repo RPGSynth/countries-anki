@@ -18,7 +18,7 @@ def write_qa_index(
     thumbnail_width_px: int,
     max_columns: int,
 ) -> Path:
-    """Generate a simple HTML index for visual QA."""
+    """Generate an HTML index for map/flag visual QA."""
     rows: list[str] = []
     for country in sorted(countries, key=lambda c: c.name_en.casefold()):
         map_name = f"map_{country.iso3}.png"
@@ -27,18 +27,42 @@ def write_qa_index(
         flag_path = flags_dir / flag_name
         map_ok = map_path.exists()
         flag_ok = flag_path.exists()
-        status = "OK" if map_ok and flag_ok else "MISSING"
+
+        if map_ok and flag_ok:
+            card_status = "ready"
+            card_status_label = "READY"
+        elif map_ok:
+            card_status = "map_only"
+            card_status_label = "MAP_ONLY"
+        else:
+            card_status = "missing_map"
+            card_status_label = "MISSING_MAP"
 
         map_src = f"../media/maps/{map_name}"
         flag_src = f"../media/flags/{flag_name}"
+        map_cell = (
+            f"  <img src='{escape(map_src)}' alt='Map {escape(country.name_en)}' "
+            f"width='{thumbnail_width_px}'>"
+            if map_ok
+            else "  <div class='placeholder'>Map not generated</div>"
+        )
+        flag_cell = (
+            f"  <img src='{escape(flag_src)}' alt='Flag {escape(country.name_en)}' "
+            f"width='{int(thumbnail_width_px * 0.6)}'>"
+            if flag_ok
+            else "  <div class='placeholder small'>Flag not generated yet</div>"
+        )
+
         rows.append(
             "\n".join(
                 [
                     "<div class='card'>",
                     f"  <h3>{escape(country.name_en)} ({country.iso3})</h3>",
-                    f"  <p class='status {status.lower()}'>{status}</p>",
-                    f"  <img src='{escape(map_src)}' alt='Map {escape(country.name_en)}' width='{thumbnail_width_px}'>",
-                    f"  <img src='{escape(flag_src)}' alt='Flag {escape(country.name_en)}' width='{int(thumbnail_width_px * 0.6)}'>",
+                    f"  <p class='status {card_status}'>{card_status_label}</p>",
+                    f"  <p class='asset-status'>map: {'OK' if map_ok else 'MISSING'}</p>",
+                    map_cell,
+                    f"  <p class='asset-status'>flag: {'OK' if flag_ok else 'MISSING'}</p>",
+                    flag_cell,
                     "</div>",
                 ]
             )
@@ -54,13 +78,27 @@ def write_qa_index(
             "  <title>countries-anki QA</title>",
             "  <style>",
             "    body { font-family: Arial, sans-serif; margin: 16px; }",
-            f"    .grid {{ display: grid; grid-template-columns: repeat({max_columns}, minmax(220px, 1fr)); gap: 16px; }}",
+            "    .grid { "
+            f"display: grid; grid-template-columns: repeat({max_columns}, minmax(220px, 1fr)); "
+            "gap: 16px; }",
             "    .card { border: 1px solid #ddd; border-radius: 8px; padding: 12px; }",
             "    .card h3 { margin: 0 0 8px 0; font-size: 16px; }",
             "    .status { margin: 0 0 8px 0; font-weight: 700; }",
-            "    .status.ok { color: #197a2f; }",
-            "    .status.missing { color: #b22d2d; }",
+            "    .status.ready { color: #197a2f; }",
+            "    .status.map_only { color: #99610f; }",
+            "    .status.missing_map { color: #b22d2d; }",
+            "    .asset-status { margin: 0 0 4px 0; font-size: 13px; color: #333; }",
             "    img { display: block; max-width: 100%; margin-bottom: 8px; }",
+            "    .placeholder {",
+            "      border: 1px dashed #bbb;",
+            "      color: #666;",
+            "      border-radius: 6px;",
+            "      padding: 12px;",
+            "      margin-bottom: 8px;",
+            "      background: #fafafa;",
+            "      font-size: 13px;",
+            "    }",
+            "    .placeholder.small { width: 60%; }",
             "  </style>",
             "</head>",
             "<body>",

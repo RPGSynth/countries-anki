@@ -1,0 +1,74 @@
+# Optional per-country render overrides (keyed by ISO3).
+# Any field can be omitted.
+#
+# Example:
+# BEL:
+#   outline: true
+#   center_on_capital: false
+#   inset: false
+#   capital_zoom_pct: 50   # + means zoom in (tighter), - means zoom out (wider)
+#
+# Note:
+# - If render.background.mode is "white", outlines are always drawn.
+#   (outline: false is intentionally ignored in white mode.)
+#
+# KIR:
+#   center_on_capital: true
+#   inset: false
+
+FJI:
+  inset: false
+  center_on_capital: true
+  capital_zoom_pct: -50
+
+KIR:
+  inset: false
+  center_on_capital: true
+  capital_zoom_pct: 50
+
+MUS:
+  center_on_capital: true
+  inset: false
+  outline: false
+  capital_zoom_pct: 75
+
+NRU:
+  outline: false
+
+FSM:
+  inset: false
+  center_on_capital: true
+  outline: false
+  capital_zoom_pct: 100
+
+NZL:
+  center_on_capital: true
+  inset: false
+  capital_zoom_pct: -500
+
+NOR:
+  inset: false
+
+RUS:
+  inset: false
+
+SYC:
+  inset: false
+  center_on_capital: true
+  capital_zoom_pct: 100
+
+SGP:
+  outline: false
+
+LKA:
+  outline: false
+
+TON:
+  center_on_capital: true
+  inset: false
+  capital_zoom_pct: 75
+
+TUV:
+  center_on_capital: true
+  inset: true
+  capital_zoom_pct: 100
