@@ -19,46 +19,104 @@ from .models import CityRecord, RenderOverride, SelectedCities
 from .render_overrides import load_render_overrides
 
 
-_CONTEXT_LINE_ALPHA = 0.46
-_CONTEXT_LINE_STYLE = (0, (1.8, 2.8))
-_CONTEXT_LINE_COLOR = "#777777"
-
-_SEGMENT_JUMP_THRESHOLD = 2_500_000.0
-
-_INSET_MAX = 3
-_INSET_DISTANCE_DEG = 9.0
-_INSET_VERY_FAR_DEG = 24.0
-_INSET_MIN_AREA_SHARE = 0.003
-_INSET_CITY_MATCH_EPS = 0.03
-
-_INSET_BOX_SIZE = 0.20
-_INSET_BOX_GAP = 0.015
-_INSET_BOX_MARGIN = 0.02
-
-_DEG_TO_M = 111_320.0
-
-_TINY_COUNTRY_MAX_M = 1.5 * _DEG_TO_M
-_TINY_PADDING_X_SCALE = 0.16
-_TINY_PADDING_Y_SCALE = 0.16
-_TINY_PADDING_X_BIAS_MAIN = 900.0
-_TINY_PADDING_Y_BIAS_MAIN = 900.0
-_TINY_PADDING_X_BIAS_INSET = 600.0
-_TINY_PADDING_Y_BIAS_INSET = 600.0
-
-_BASEMAP_N_CONNECTIONS_MAIN = 4
-_BASEMAP_N_CONNECTIONS_INSET = 2
-
 _BACKGROUND_WHITE = "white"
 _BACKGROUND_SATELLITE = "satellite"
 
-_CITY_VISUAL_SCALE = 1.25
-_LABEL_EDGE_GUARD_RATIO = 0.045
-_LABEL_EDGE_GUARD_MIN_MAIN_M = 1_500.0
-_LABEL_EDGE_GUARD_MIN_INSET_M = 800.0
-
-_CAPITAL_CENTER_HALF_HEIGHT_M = 140_000.0
-
 _LOGGER = logging.getLogger("deckbuilder.render")
+
+
+@dataclass(frozen=True, slots=True)
+class _GeometryDrawPolicy:
+    context_line_alpha: float
+    context_line_style: tuple[Any, ...]
+    context_line_color: str
+    segment_jump_threshold_m: float
+
+
+@dataclass(frozen=True, slots=True)
+class _InsetPolicy:
+    max_count: int
+    distance_deg: float
+    very_far_deg: float
+    min_area_share: float
+    city_match_eps: float
+    box_size: float
+    box_gap: float
+    box_margin: float
+
+
+@dataclass(frozen=True, slots=True)
+class _ExtentPolicy:
+    deg_to_m: float
+    tiny_country_max_m: float
+    tiny_padding_x_scale: float
+    tiny_padding_y_scale: float
+    tiny_padding_x_bias_main: float
+    tiny_padding_y_bias_main: float
+    tiny_padding_x_bias_inset: float
+    tiny_padding_y_bias_inset: float
+    main_min_padding_floor_m: float
+    inset_min_padding_floor_m: float
+    main_min_span_m: float
+    inset_min_span_m: float
+    inset_padding_scale: float
+    capital_center_half_height_m: float
+
+
+@dataclass(frozen=True, slots=True)
+class _BasemapPolicy:
+    main_connections: int
+    inset_connections: int
+
+
+@dataclass(frozen=True, slots=True)
+class _LabelPolicy:
+    city_visual_scale: float
+    edge_guard_ratio: float
+    edge_guard_min_main_m: float
+    edge_guard_min_inset_m: float
+
+
+# Rendering heuristics are grouped by concern so tuning stays localized.
+_GEOMETRY_DRAW_POLICY = _GeometryDrawPolicy(
+    context_line_alpha=0.46,
+    context_line_style=(0, (1.8, 2.8)),
+    context_line_color="#777777",
+    segment_jump_threshold_m=2_500_000.0,
+)
+_INSET_POLICY = _InsetPolicy(
+    max_count=3,
+    distance_deg=9.0,
+    very_far_deg=24.0,
+    min_area_share=0.003,
+    city_match_eps=0.03,
+    box_size=0.20,
+    box_gap=0.015,
+    box_margin=0.02,
+)
+_EXTENT_POLICY = _ExtentPolicy(
+    deg_to_m=111_320.0,
+    tiny_country_max_m=1.5 * 111_320.0,
+    tiny_padding_x_scale=0.16,
+    tiny_padding_y_scale=0.16,
+    tiny_padding_x_bias_main=900.0,
+    tiny_padding_y_bias_main=900.0,
+    tiny_padding_x_bias_inset=600.0,
+    tiny_padding_y_bias_inset=600.0,
+    main_min_padding_floor_m=900.0,
+    inset_min_padding_floor_m=550.0,
+    main_min_span_m=6_000.0,
+    inset_min_span_m=3_500.0,
+    inset_padding_scale=0.9,
+    capital_center_half_height_m=140_000.0,
+)
+_BASEMAP_POLICY = _BasemapPolicy(main_connections=4, inset_connections=2)
+_LABEL_POLICY = _LabelPolicy(
+    city_visual_scale=1.25,
+    edge_guard_ratio=0.045,
+    edge_guard_min_main_m=1_500.0,
+    edge_guard_min_inset_m=800.0,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -103,6 +161,45 @@ class _ProjectedCity:
     is_capital: bool
 
 
+@dataclass(frozen=True, slots=True)
+class _PreparedRenderInputs:
+    main_projection: _LocalProjection
+    main_geometry: Any
+    context_geometries: tuple[Any, ...]
+    inset_geometries: tuple[Any, ...]
+    main_projected_cities: tuple[_ProjectedCity, ...]
+    inset_city_items: tuple[tuple[tuple[CityRecord, bool], ...], ...]
+
+
+@dataclass(frozen=True, slots=True)
+class _PanelRenderSpec:
+    ax: Any
+    extent: tuple[float, float, float, float]
+    geometry: Any
+    cities: tuple[_ProjectedCity, ...]
+    label_overrides: Mapping[str, str]
+    draw_outline: bool
+    is_inset: bool
+    context_geometries: tuple[Any, ...] = ()
+
+
+_PixelBBox = tuple[float, float, float, float]
+
+
+@dataclass(frozen=True, slots=True)
+class _LabelCandidate:
+    city: _ProjectedCity
+    text: str
+
+
+@dataclass(frozen=True, slots=True)
+class _ExtentModeSettings:
+    min_padding_floor_m: float
+    min_span_m: float
+    pad_scale: float
+    target_ratio: float
+
+
 @dataclass(slots=True)
 class RenderMapsReport:
     output_dir: Path | None = None
@@ -143,16 +240,69 @@ class MapRenderer:
         width_px = self.cfg.image.width_px
         height_px = self.cfg.image.height_px
         dpi = self.cfg.image.dpi
+        policy = _resolve_country_render_policy(
+            override=req.render_override,
+            background_mode=self.cfg.background.mode,
+        )
+        prepared = self._prepare_render_inputs(req=req, policy=policy)
 
+        fig, ax = plt.subplots(figsize=(width_px / dpi, height_px / dpi), dpi=dpi)
+        fig.subplots_adjust(left=0.0, right=1.0, bottom=0.0, top=1.0)
+
+        try:
+            main_extent = self._resolve_main_extent(
+                req=req,
+                policy=policy,
+                main_projection=prepared.main_projection,
+                main_geometry=prepared.main_geometry,
+            )
+            self._render_panel(
+                fig=fig,
+                transforms=transforms,
+                spec=_PanelRenderSpec(
+                    ax=ax,
+                    extent=main_extent,
+                    geometry=prepared.main_geometry,
+                    cities=prepared.main_projected_cities,
+                    label_overrides=req.label_overrides,
+                    draw_outline=policy.draw_outline,
+                    is_inset=False,
+                    context_geometries=prepared.context_geometries,
+                ),
+                apply_figure_background=True,
+            )
+
+            self._draw_insets(
+                fig=fig,
+                transforms=transforms,
+                inset_geometries=prepared.inset_geometries,
+                inset_city_items=prepared.inset_city_items,
+                label_overrides=req.label_overrides,
+                draw_outline=policy.draw_outline,
+            )
+
+            req.output_path.parent.mkdir(parents=True, exist_ok=True)
+            fig.savefig(
+                req.output_path,
+                dpi=dpi,
+                format=self.cfg.image.format,
+                transparent=self.cfg.image.background.casefold() == "transparent",
+            )
+            return req.output_path
+        finally:
+            plt.close(fig)
+
+    def _prepare_render_inputs(
+        self,
+        *,
+        req: RenderRequest,
+        policy: _CountryRenderPolicy,
+    ) -> _PreparedRenderInputs:
         main_projection = _build_local_projection(req.main_geometry)
         main_geometry = _project_geometry(req.main_geometry, main_projection)
         context_geometries = tuple(
             _project_geometry(geometry, main_projection)
             for geometry in req.context_geometries
-        )
-        policy = _resolve_country_render_policy(
-            override=req.render_override,
-            background_mode=self.cfg.background.mode,
         )
 
         effective_inset_geometries = req.inset_geometries
@@ -170,79 +320,125 @@ class MapRenderer:
             selected=req.selected_cities,
             inset_geometries=effective_inset_geometries,
         )
-        main_projected_cities = _project_city_items(main_city_items, main_projection)
+        return _PreparedRenderInputs(
+            main_projection=main_projection,
+            main_geometry=main_geometry,
+            context_geometries=context_geometries,
+            inset_geometries=tuple(effective_inset_geometries),
+            main_projected_cities=_project_city_items(main_city_items, main_projection),
+            inset_city_items=inset_city_items,
+        )
 
-        fig, ax = plt.subplots(figsize=(width_px / dpi, height_px / dpi), dpi=dpi)
-        fig.subplots_adjust(left=0.0, right=1.0, bottom=0.0, top=1.0)
-        _apply_background(fig=fig, ax=ax, background=self.cfg.image.background)
+    def _resolve_main_extent(
+        self,
+        *,
+        req: RenderRequest,
+        policy: _CountryRenderPolicy,
+        main_projection: _LocalProjection,
+        main_geometry: Any,
+    ) -> tuple[float, float, float, float]:
+        if policy.center_on_capital:
+            return _compute_capital_centered_extent(
+                capital=req.selected_cities.capital,
+                cfg=self.cfg,
+                projection=main_projection,
+                zoom_pct=policy.capital_zoom_pct,
+            )
+        return _compute_extent(
+            geometry=main_geometry,
+            cfg=self.cfg,
+            projection=main_projection,
+            is_inset=False,
+        )
 
-        try:
-            if policy.center_on_capital:
-                extent = _compute_capital_centered_extent(
-                    capital=req.selected_cities.capital,
-                    cfg=self.cfg,
-                    projection=main_projection,
-                    zoom_pct=policy.capital_zoom_pct,
-                )
-            else:
-                extent = _compute_extent(
-                    geometry=main_geometry,
-                    cfg=self.cfg,
-                    projection=main_projection,
-                    is_inset=False,
-                )
-            ax.set_xlim(extent[0], extent[1])
-            ax.set_ylim(extent[2], extent[3])
-            ax.set_aspect("equal", adjustable="box")
+    def _render_panel(
+        self,
+        *,
+        fig: Any,
+        transforms: Any,
+        spec: _PanelRenderSpec,
+        apply_figure_background: bool,
+    ) -> None:
+        _apply_background(
+            fig=fig if apply_figure_background else None,
+            ax=spec.ax,
+            background=self.cfg.image.background,
+        )
+        self._configure_panel_axes(ax=spec.ax, extent=spec.extent, is_inset=spec.is_inset)
+        self._draw_basemap(ax=spec.ax, is_inset=spec.is_inset)
+        if spec.is_inset:
+            self._style_inset_frame(spec.ax)
+        if spec.context_geometries:
+            _draw_context_outlines(ax=spec.ax, geometries=spec.context_geometries)
+        if spec.draw_outline:
+            _draw_geometry_outline(
+                ax=spec.ax,
+                geometry=spec.geometry,
+                color=self.cfg.style.country_outline_color,
+                line_width=self._outline_line_width(spec.is_inset),
+                zorder=2,
+            )
+        self._draw_panel_city_content(
+            ax=spec.ax,
+            fig=fig,
+            transforms=transforms,
+            cities=spec.cities,
+            label_overrides=spec.label_overrides,
+        )
+
+    def _draw_panel_city_content(
+        self,
+        *,
+        ax: Any,
+        fig: Any,
+        transforms: Any,
+        cities: tuple[_ProjectedCity, ...],
+        label_overrides: Mapping[str, str],
+    ) -> None:
+        _draw_city_markers(
+            ax=ax,
+            cities=cities,
+            marker_color=self.cfg.style.city_marker_color,
+            city_marker_size=self.cfg.style.city_marker_size,
+            capital_marker_size=self.cfg.style.capital_marker_size,
+            zorder=4,
+        )
+        _place_city_labels(
+            ax=ax,
+            fig=fig,
+            transforms=transforms,
+            cities=cities,
+            label_overrides=label_overrides,
+            cfg=self.cfg,
+            zorder_base=5,
+        )
+
+    def _configure_panel_axes(
+        self,
+        *,
+        ax: Any,
+        extent: tuple[float, float, float, float],
+        is_inset: bool,
+    ) -> None:
+        ax.set_xlim(extent[0], extent[1])
+        ax.set_ylim(extent[2], extent[3])
+        ax.set_aspect("equal", adjustable="box")
+        if is_inset:
+            ax.set_xticks([])
+            ax.set_yticks([])
+        else:
             ax.axis("off")
 
-            self._draw_basemap(ax=ax, is_inset=False)
-            _draw_context_outlines(ax=ax, geometries=context_geometries)
-            if policy.draw_outline:
-                _draw_geometry_outline(
-                    ax=ax,
-                    geometry=main_geometry,
-                    color=self.cfg.style.country_outline_color,
-                    line_width=self.cfg.style.country_outline_width,
-                    zorder=2,
-                )
-            _draw_city_markers(
-                ax=ax,
-                cities=main_projected_cities,
-                marker_color=self.cfg.style.city_marker_color,
-                city_marker_size=self.cfg.style.city_marker_size,
-                capital_marker_size=self.cfg.style.capital_marker_size,
-                zorder=4,
-            )
-            _place_city_labels(
-                ax=ax,
-                fig=fig,
-                transforms=transforms,
-                cities=main_projected_cities,
-                label_overrides=req.label_overrides,
-                cfg=self.cfg,
-                zorder_base=5,
-            )
+    def _style_inset_frame(self, ax: Any) -> None:
+        for spine in ax.spines.values():
+            spine.set_visible(True)
+            spine.set_linewidth(0.9)
+            spine.set_edgecolor(self.cfg.style.country_outline_color)
 
-            self._draw_insets(
-                fig=fig,
-                transforms=transforms,
-                inset_geometries=effective_inset_geometries,
-                inset_city_items=inset_city_items,
-                label_overrides=req.label_overrides,
-                draw_outline=policy.draw_outline,
-            )
-
-            req.output_path.parent.mkdir(parents=True, exist_ok=True)
-            fig.savefig(
-                req.output_path,
-                dpi=dpi,
-                format=self.cfg.image.format,
-                transparent=self.cfg.image.background.casefold() == "transparent",
-            )
-            return req.output_path
-        finally:
-            plt.close(fig)
+    def _outline_line_width(self, is_inset: bool) -> float:
+        if is_inset:
+            return max(self.cfg.style.country_outline_width * 0.9, 0.9)
+        return self.cfg.style.country_outline_width
 
     def _draw_insets(
         self,
@@ -264,51 +460,29 @@ class MapRenderer:
 
             inset_projection = _build_local_projection(geometry)
             projected_geometry = _project_geometry(geometry, inset_projection)
-            cities_projected = _project_city_items(inset_city_items[idx], inset_projection)
+            city_items = inset_city_items[idx] if idx < len(inset_city_items) else ()
+            cities_projected = _project_city_items(city_items, inset_projection)
 
             ax_inset = fig.add_axes(list(positions[idx]), zorder=20 + idx)
-            _apply_background(fig=None, ax=ax_inset, background=self.cfg.image.background)
             extent = _compute_extent(
                 geometry=projected_geometry,
                 cfg=self.cfg,
                 projection=inset_projection,
                 is_inset=True,
             )
-            ax_inset.set_xlim(extent[0], extent[1])
-            ax_inset.set_ylim(extent[2], extent[3])
-            ax_inset.set_aspect("equal", adjustable="box")
-            ax_inset.set_xticks([])
-            ax_inset.set_yticks([])
-            self._draw_basemap(ax=ax_inset, is_inset=True)
-            for spine in ax_inset.spines.values():
-                spine.set_visible(True)
-                spine.set_linewidth(0.9)
-                spine.set_edgecolor(self.cfg.style.country_outline_color)
-
-            if draw_outline:
-                _draw_geometry_outline(
-                    ax=ax_inset,
-                    geometry=projected_geometry,
-                    color=self.cfg.style.country_outline_color,
-                    line_width=max(self.cfg.style.country_outline_width * 0.9, 0.9),
-                    zorder=2,
-                )
-            _draw_city_markers(
-                ax=ax_inset,
-                cities=cities_projected,
-                marker_color=self.cfg.style.city_marker_color,
-                city_marker_size=self.cfg.style.city_marker_size,
-                capital_marker_size=self.cfg.style.capital_marker_size,
-                zorder=4,
-            )
-            _place_city_labels(
-                ax=ax_inset,
+            self._render_panel(
                 fig=fig,
                 transforms=transforms,
-                cities=cities_projected,
-                label_overrides=label_overrides,
-                cfg=self.cfg,
-                zorder_base=5,
+                spec=_PanelRenderSpec(
+                    ax=ax_inset,
+                    extent=extent,
+                    geometry=projected_geometry,
+                    cities=cities_projected,
+                    label_overrides=label_overrides,
+                    draw_outline=draw_outline,
+                    is_inset=True,
+                ),
+                apply_figure_background=False,
             )
 
     def _draw_basemap(self, *, ax: Any, is_inset: bool) -> None:
@@ -318,7 +492,9 @@ class MapRenderer:
         x0, x1 = ax.get_xlim()
         y0, y1 = ax.get_ylim()
         n_connections = (
-            _BASEMAP_N_CONNECTIONS_INSET if is_inset else _BASEMAP_N_CONNECTIONS_MAIN
+            _BASEMAP_POLICY.inset_connections
+            if is_inset
+            else _BASEMAP_POLICY.main_connections
         )
         try:
             if self.debug_render:
@@ -767,9 +943,13 @@ def _partition_country_geometry_for_insets(
         distance = float(component.distance(main_component))
         area_share = float(component.area) / main_area
         has_selected_city = _geometry_has_selected_city(component, city_points)
-        far = distance >= _INSET_DISTANCE_DEG
-        very_far = distance >= _INSET_VERY_FAR_DEG
-        if far and (area_share >= _INSET_MIN_AREA_SHARE or has_selected_city or very_far):
+        far = distance >= _INSET_POLICY.distance_deg
+        very_far = distance >= _INSET_POLICY.very_far_deg
+        if far and (
+            area_share >= _INSET_POLICY.min_area_share
+            or has_selected_city
+            or very_far
+        ):
             inset_candidates.append(component)
         else:
             main_parts.append(component)
@@ -785,8 +965,8 @@ def _partition_country_geometry_for_insets(
         )
     )
 
-    if len(inset_candidates) > _INSET_MAX:
-        keep_count = max(_INSET_MAX - 1, 0)
+    if len(inset_candidates) > _INSET_POLICY.max_count:
+        keep_count = max(_INSET_POLICY.max_count - 1, 0)
         keep = inset_candidates[:keep_count]
         overflow = inset_candidates[keep_count:]
         if overflow:
@@ -837,12 +1017,7 @@ def _merge_visible_insets_into_main_view(
 
 
 def _selected_city_points(selected: SelectedCities) -> tuple[Any, ...]:
-    point_factory = _require_shapely_point_factory()
-    points: list[Any] = []
-    all_cities = (selected.capital, *selected.others)
-    for city in all_cities:
-        points.append(point_factory(city.lon, city.lat))
-    return tuple(points)
+    return tuple(_city_to_point(city) for city in (selected.capital, *selected.others))
 
 
 def _geometry_has_selected_city(geometry: Any, city_points: Sequence[Any]) -> bool:
@@ -855,8 +1030,10 @@ def _geometry_has_selected_city(geometry: Any, city_points: Sequence[Any]) -> bo
 
 
 def _geometry_matches_point(geometry: Any, point: Any) -> bool:
-    envelope = geometry.buffer(_INSET_CITY_MATCH_EPS)
-    return bool(envelope.contains(point) or envelope.distance(point) <= _INSET_CITY_MATCH_EPS)
+    envelope = geometry.buffer(_INSET_POLICY.city_match_eps)
+    return bool(
+        envelope.contains(point) or envelope.distance(point) <= _INSET_POLICY.city_match_eps
+    )
 
 
 def _explode_polygons(geometry: Any) -> list[Any]:
@@ -938,12 +1115,15 @@ def _selected_city_items(selected: SelectedCities) -> tuple[tuple[CityRecord, bo
 def _find_inset_index_for_city(city: CityRecord, inset_geometries: Sequence[Any]) -> int | None:
     if not inset_geometries:
         return None
-    point = _require_shapely_point_factory()(city.lon, city.lat)
+    point = _city_to_point(city)
     for idx, geometry in enumerate(inset_geometries):
-        envelope = geometry.buffer(_INSET_CITY_MATCH_EPS)
-        if envelope.contains(point) or envelope.distance(point) <= _INSET_CITY_MATCH_EPS:
+        if _geometry_matches_point(geometry, point):
             return idx
     return None
+
+
+def _city_to_point(city: CityRecord) -> Any:
+    return _require_shapely_point_factory()(city.lon, city.lat)
 
 
 def _project_city_items(
@@ -1000,39 +1180,33 @@ def _compute_extent(
     min_x, min_y, max_x, max_y = [float(item) for item in geometry.bounds]
     width = max(max_x - min_x, 1e-6)
     height = max(max_y - min_y, 1e-6)
+    mode = _extent_mode_settings(is_inset=is_inset, cfg=cfg)
 
-    configured_min_padding_m = max(cfg.extent.min_padding_deg * _DEG_TO_M, 0.0)
+    configured_min_padding_m = max(cfg.extent.min_padding_deg * _EXTENT_POLICY.deg_to_m, 0.0)
     min_pad_x, min_pad_y = _adaptive_min_padding_m(
         width=width,
         height=height,
         configured_min_padding_m=configured_min_padding_m,
         is_inset=is_inset,
     )
-    floor = 550.0 if is_inset else 900.0
-    min_pad_x = max(min_pad_x, floor)
-    min_pad_y = max(min_pad_y, floor)
-    pad_scale = 0.9 if is_inset else 1.0
-    pad_x = max(width * cfg.extent.padding_ratio * pad_scale, min_pad_x)
-    pad_y = max(height * cfg.extent.padding_ratio * pad_scale, min_pad_y)
+    min_pad_x = max(min_pad_x, mode.min_padding_floor_m)
+    min_pad_y = max(min_pad_y, mode.min_padding_floor_m)
+    pad_x = max(width * cfg.extent.padding_ratio * mode.pad_scale, min_pad_x)
+    pad_y = max(height * cfg.extent.padding_ratio * mode.pad_scale, min_pad_y)
 
     x0 = min_x - pad_x
     x1 = max_x + pad_x
     y0 = min_y - pad_y
     y1 = max_y + pad_y
 
-    if is_inset:
-        min_span_x = max(3_500.0, width + pad_x * 2.0)
-        min_span_y = max(3_500.0, height + pad_y * 2.0)
-    else:
-        min_span_x = max(6_000.0, width + pad_x * 2.0)
-        min_span_y = max(6_000.0, height + pad_y * 2.0)
+    min_span_x = max(mode.min_span_m, width + pad_x * 2.0)
+    min_span_y = max(mode.min_span_m, height + pad_y * 2.0)
     x0, x1 = _ensure_min_span(x0, x1, min_span_x)
     y0, y1 = _ensure_min_span(y0, y1, min_span_y)
 
     clamp_min = _mercator_y(cfg.extent.clamp_lat.min, projection)
     clamp_max = _mercator_y(cfg.extent.clamp_lat.max, projection)
-    y0 = max(y0, clamp_min)
-    y1 = min(y1, clamp_max)
+    y0, y1 = _clamp_y_bounds(y0=y0, y1=y1, clamp_min=clamp_min, clamp_max=clamp_max)
     if y1 <= y0:
         center = max(min((min_y + max_y) / 2.0, clamp_max), clamp_min)
         y0 = max(center - 1_000.0, clamp_min)
@@ -1040,13 +1214,12 @@ def _compute_extent(
         if y1 <= y0:
             y1 = min(y0 + 1e-3, clamp_max)
 
-    target_ratio = 1.0 if is_inset else (cfg.image.width_px / cfg.image.height_px)
     x0, x1, y0, y1 = _fit_extent_aspect(
         x0=x0,
         x1=x1,
         y0=y0,
         y1=y1,
-        target_ratio=target_ratio,
+        target_ratio=mode.target_ratio,
     )
     x0, x1, y0, y1 = _expand_extent_for_label_guard(
         x0=x0,
@@ -1055,11 +1228,36 @@ def _compute_extent(
         y1=y1,
         is_inset=is_inset,
     )
-    y0 = max(y0, clamp_min)
-    y1 = min(y1, clamp_max)
+    y0, y1 = _clamp_y_bounds(y0=y0, y1=y1, clamp_min=clamp_min, clamp_max=clamp_max)
     if y1 <= y0:
         y1 = min(y0 + 1e-3, clamp_max)
     return (x0, x1, y0, y1)
+
+
+def _extent_mode_settings(*, is_inset: bool, cfg: RenderConfig) -> _ExtentModeSettings:
+    if is_inset:
+        return _ExtentModeSettings(
+            min_padding_floor_m=_EXTENT_POLICY.inset_min_padding_floor_m,
+            min_span_m=_EXTENT_POLICY.inset_min_span_m,
+            pad_scale=_EXTENT_POLICY.inset_padding_scale,
+            target_ratio=1.0,
+        )
+    return _ExtentModeSettings(
+        min_padding_floor_m=_EXTENT_POLICY.main_min_padding_floor_m,
+        min_span_m=_EXTENT_POLICY.main_min_span_m,
+        pad_scale=1.0,
+        target_ratio=cfg.image.width_px / cfg.image.height_px,
+    )
+
+
+def _clamp_y_bounds(
+    *,
+    y0: float,
+    y1: float,
+    clamp_min: float,
+    clamp_max: float,
+) -> tuple[float, float]:
+    return (max(y0, clamp_min), min(y1, clamp_max))
 
 
 def _compute_capital_centered_extent(
@@ -1070,7 +1268,7 @@ def _compute_capital_centered_extent(
     zoom_pct: float | None = None,
 ) -> tuple[float, float, float, float]:
     center_x, center_y = _project_lon_lat(capital.lon, capital.lat, projection)
-    half_height = _CAPITAL_CENTER_HALF_HEIGHT_M * _capital_zoom_scale(zoom_pct)
+    half_height = _EXTENT_POLICY.capital_center_half_height_m * _capital_zoom_scale(zoom_pct)
     target_ratio = cfg.image.width_px / cfg.image.height_px
     half_width = half_height * target_ratio
     x0 = center_x - half_width
@@ -1086,8 +1284,7 @@ def _compute_capital_centered_extent(
     )
     clamp_min = _mercator_y(cfg.extent.clamp_lat.min, projection)
     clamp_max = _mercator_y(cfg.extent.clamp_lat.max, projection)
-    y0 = max(y0, clamp_min)
-    y1 = min(y1, clamp_max)
+    y0, y1 = _clamp_y_bounds(y0=y0, y1=y1, clamp_min=clamp_min, clamp_max=clamp_max)
     if y1 <= y0:
         y1 = min(y0 + 1_000.0, clamp_max)
     return (x0, x1, y0, y1)
@@ -1122,16 +1319,27 @@ def _adaptive_min_padding_m(
     configured_min_padding_m: float,
     is_inset: bool,
 ) -> tuple[float, float]:
-    if width <= _TINY_COUNTRY_MAX_M and height <= _TINY_COUNTRY_MAX_M:
-        bias_x = _TINY_PADDING_X_BIAS_INSET if is_inset else _TINY_PADDING_X_BIAS_MAIN
-        bias_y = _TINY_PADDING_Y_BIAS_INSET if is_inset else _TINY_PADDING_Y_BIAS_MAIN
-        adaptive_x = max(width * _TINY_PADDING_X_SCALE + bias_x, 250.0)
-        adaptive_y = max(height * _TINY_PADDING_Y_SCALE + bias_y, 250.0)
+    if width <= _EXTENT_POLICY.tiny_country_max_m and height <= _EXTENT_POLICY.tiny_country_max_m:
+        bias_x, bias_y = _tiny_padding_biases(is_inset=is_inset)
+        adaptive_x = max(width * _EXTENT_POLICY.tiny_padding_x_scale + bias_x, 250.0)
+        adaptive_y = max(height * _EXTENT_POLICY.tiny_padding_y_scale + bias_y, 250.0)
         return (
             min(configured_min_padding_m, adaptive_x),
             min(configured_min_padding_m, adaptive_y),
         )
     return (configured_min_padding_m, configured_min_padding_m)
+
+
+def _tiny_padding_biases(*, is_inset: bool) -> tuple[float, float]:
+    if is_inset:
+        return (
+            _EXTENT_POLICY.tiny_padding_x_bias_inset,
+            _EXTENT_POLICY.tiny_padding_y_bias_inset,
+        )
+    return (
+        _EXTENT_POLICY.tiny_padding_x_bias_main,
+        _EXTENT_POLICY.tiny_padding_y_bias_main,
+    )
 
 
 def _expand_extent_for_label_guard(
@@ -1144,9 +1352,9 @@ def _expand_extent_for_label_guard(
 ) -> tuple[float, float, float, float]:
     width = max(x1 - x0, 1e-6)
     height = max(y1 - y0, 1e-6)
-    min_guard = _LABEL_EDGE_GUARD_MIN_INSET_M if is_inset else _LABEL_EDGE_GUARD_MIN_MAIN_M
-    guard_x = max(width * _LABEL_EDGE_GUARD_RATIO, min_guard)
-    guard_y = max(height * _LABEL_EDGE_GUARD_RATIO, min_guard)
+    min_guard = _LABEL_POLICY.edge_guard_min_inset_m if is_inset else _LABEL_POLICY.edge_guard_min_main_m
+    guard_x = max(width * _LABEL_POLICY.edge_guard_ratio, min_guard)
+    guard_y = max(height * _LABEL_POLICY.edge_guard_ratio, min_guard)
     return (x0 - guard_x, x1 + guard_x, y0 - guard_y, y1 + guard_y)
 
 
@@ -1183,10 +1391,10 @@ def _draw_context_outlines(*, ax: Any, geometries: Sequence[Any]) -> None:
         _draw_geometry_outline(
             ax=ax,
             geometry=geometry,
-            color=_CONTEXT_LINE_COLOR,
+            color=_GEOMETRY_DRAW_POLICY.context_line_color,
             line_width=0.8,
-            alpha=_CONTEXT_LINE_ALPHA,
-            line_style=_CONTEXT_LINE_STYLE,
+            alpha=_GEOMETRY_DRAW_POLICY.context_line_alpha,
+            line_style=_GEOMETRY_DRAW_POLICY.context_line_style,
             zorder=0,
         )
 
@@ -1248,9 +1456,9 @@ def _is_large_segment_jump(
 ) -> bool:
     dx = abs(float(right[0]) - float(left[0]))
     dy = abs(float(right[1]) - float(left[1]))
-    if dx > _SEGMENT_JUMP_THRESHOLD:
+    if dx > _GEOMETRY_DRAW_POLICY.segment_jump_threshold_m:
         return True
-    if math.hypot(dx, dy) > _SEGMENT_JUMP_THRESHOLD * 1.1:
+    if math.hypot(dx, dy) > _GEOMETRY_DRAW_POLICY.segment_jump_threshold_m * 1.1:
         return True
     return False
 
@@ -1290,10 +1498,13 @@ def _draw_city_markers(
 ) -> None:
     normal = [city for city in cities if not city.is_capital]
     capitals = [city for city in cities if city.is_capital]
-    city_size = max(float(city_marker_size) * 1.4 * _CITY_VISUAL_SCALE, 18.0 * _CITY_VISUAL_SCALE)
+    city_size = max(
+        float(city_marker_size) * 1.4 * _LABEL_POLICY.city_visual_scale,
+        18.0 * _LABEL_POLICY.city_visual_scale,
+    )
     capital_size = max(
-        float(capital_marker_size) * 2.0 * _CITY_VISUAL_SCALE,
-        95.0 * _CITY_VISUAL_SCALE,
+        float(capital_marker_size) * 2.0 * _LABEL_POLICY.city_visual_scale,
+        95.0 * _LABEL_POLICY.city_visual_scale,
     )
     if normal:
         ax.scatter(
@@ -1327,25 +1538,19 @@ def _place_city_labels(
     cfg: RenderConfig,
     zorder_base: int,
 ) -> None:
-    if not cities:
+    candidates = _build_label_candidates(cities=cities, label_overrides=label_overrides)
+    if not candidates:
         return
     fig.canvas.draw()
     renderer = fig.canvas.get_renderer()
-    occupied: list[tuple[float, float, float, float]] = []
-    ordered = list(cities)
-    ordered.sort(key=lambda city: (not city.is_capital, city.source_name.casefold()))
-
-    for city in ordered:
-        label = label_overrides.get(city.source_name, city.name)
-        if not label:
-            continue
-        placement = _place_single_label(
+    occupied: list[_PixelBBox] = []
+    for candidate in candidates:
+        placement = _place_label_candidate(
             ax=ax,
             fig=fig,
             renderer=renderer,
             transforms=transforms,
-            city=city,
-            label=label,
+            candidate=candidate,
             occupied=occupied,
             cfg=cfg,
             zorder_base=zorder_base,
@@ -1354,26 +1559,39 @@ def _place_city_labels(
             occupied.append(placement)
 
 
-def _place_single_label(
+def _build_label_candidates(
+    *,
+    cities: Sequence[_ProjectedCity],
+    label_overrides: Mapping[str, str],
+) -> tuple[_LabelCandidate, ...]:
+    ordered = sorted(cities, key=lambda city: (not city.is_capital, city.source_name.casefold()))
+    out: list[_LabelCandidate] = []
+    for city in ordered:
+        label = label_overrides.get(city.source_name, city.name)
+        if not label:
+            continue
+        out.append(_LabelCandidate(city=city, text=label))
+    return tuple(out)
+
+
+def _place_label_candidate(
     *,
     ax: Any,
     fig: Any,
     renderer: Any,
     transforms: Any,
-    city: _ProjectedCity,
-    label: str,
-    occupied: Sequence[tuple[float, float, float, float]],
+    candidate: _LabelCandidate,
+    occupied: Sequence[_PixelBBox],
     cfg: RenderConfig,
     zorder_base: int,
-) -> tuple[float, float, float, float] | None:
-    best: tuple[float, Any, tuple[float, float, float, float]] | None = None
+) -> _PixelBBox | None:
+    best: tuple[float, Any, _PixelBBox] | None = None
     for dx_px, dy_px in cfg.labels.offsets_px:
         artist = _create_label_artist(
             ax=ax,
             fig=fig,
             transforms=transforms,
-            city=city,
-            label=label,
+            candidate=candidate,
             dx_px=dx_px,
             dy_px=dy_px,
             cfg=cfg,
@@ -1389,7 +1607,7 @@ def _place_single_label(
             if best is not None:
                 best[1].remove()
             return bbox
-        if city.is_capital and cfg.labels.allow_capital_overlap_if_needed:
+        if candidate.city.is_capital and cfg.labels.allow_capital_overlap_if_needed:
             if best is None or overlap < best[0]:
                 if best is not None:
                     best[1].remove()
@@ -1407,8 +1625,7 @@ def _create_label_artist(
     ax: Any,
     fig: Any,
     transforms: Any,
-    city: _ProjectedCity,
-    label: str,
+    candidate: _LabelCandidate,
     dx_px: int,
     dy_px: int,
     cfg: RenderConfig,
@@ -1429,14 +1646,15 @@ def _create_label_artist(
 
     shift = transforms.ScaledTranslation(dx_px / fig.dpi, dy_px / fig.dpi, fig.dpi_scale_trans)
     transform = ax.transData + shift
+    city = candidate.city
     font_size = cfg.style.font_size_capital if city.is_capital else cfg.style.font_size_city
-    font_size *= _CITY_VISUAL_SCALE
+    font_size *= _LABEL_POLICY.city_visual_scale
     font_weight = cfg.style.font_weight_capital if city.is_capital else "normal"
     zorder = zorder_base + 1 if city.is_capital else zorder_base
     return ax.text(
         city.x,
         city.y,
-        label,
+        candidate.text,
         transform=transform,
         color=cfg.style.label_color,
         fontsize=font_size,
@@ -1454,7 +1672,7 @@ def _expanded_text_bbox(
     artist: Any,
     renderer: Any,
     padding_px: int,
-) -> tuple[float, float, float, float]:
+) -> _PixelBBox:
     bbox = artist.get_window_extent(renderer=renderer)
     return (
         float(bbox.x0) - padding_px,
@@ -1465,15 +1683,15 @@ def _expanded_text_bbox(
 
 
 def _total_overlap_area(
-    bbox: tuple[float, float, float, float],
-    occupied: Sequence[tuple[float, float, float, float]],
+    bbox: _PixelBBox,
+    occupied: Sequence[_PixelBBox],
 ) -> float:
     return sum(_intersection_area(bbox, current) for current in occupied)
 
 
 def _intersection_area(
-    left: tuple[float, float, float, float],
-    right: tuple[float, float, float, float],
+    left: _PixelBBox,
+    right: _PixelBBox,
 ) -> float:
     x0 = max(left[0], right[0])
     y0 = max(left[1], right[1])
@@ -1487,14 +1705,16 @@ def _intersection_area(
 def _inset_positions(count: int) -> tuple[tuple[float, float, float, float], ...]:
     if count < 1:
         return ()
-    available = max(1.0 - (2.0 * _INSET_BOX_MARGIN), 0.1)
-    max_by_width = (available - _INSET_BOX_GAP * max(count - 1, 0)) / max(count, 1)
-    size = max(min(_INSET_BOX_SIZE, max_by_width), 0.08)
-    y = 1.0 - _INSET_BOX_MARGIN - size
+    available = max(1.0 - (2.0 * _INSET_POLICY.box_margin), 0.1)
+    max_by_width = (
+        available - _INSET_POLICY.box_gap * max(count - 1, 0)
+    ) / max(count, 1)
+    size = max(min(_INSET_POLICY.box_size, max_by_width), 0.08)
+    y = 1.0 - _INSET_POLICY.box_margin - size
 
     out: list[tuple[float, float, float, float]] = []
     for idx in range(count):
-        x = _INSET_BOX_MARGIN + idx * (size + _INSET_BOX_GAP)
+        x = _INSET_POLICY.box_margin + idx * (size + _INSET_POLICY.box_gap)
         out.append((x, y, size, size))
     return tuple(out)
 
