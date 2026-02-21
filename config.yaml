@@ -97,7 +97,10 @@ flags:
   source: "wikimedia_commons"
   cache_http: true
   request_timeout_s: 20
-  user_agent: "countries-anki-deckbuilder/0.1 (contact: you@example.com)"
+  user_agent: "countries-anki-deckbuilder/0.1 (contact: paulusrobert94@gmail.com)"
+  min_request_interval_s: 0.8
+  max_retries: 6
+  retry_backoff_s: 1.5
   output:
     height_px: 300
     background: "transparent"

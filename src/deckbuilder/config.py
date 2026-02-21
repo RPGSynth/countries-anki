@@ -434,16 +434,35 @@ class FlagsConfig:
     cache_http: bool
     request_timeout_s: int
     user_agent: str
+    min_request_interval_s: float
+    max_retries: int
+    retry_backoff_s: float
     output: FlagOutputConfig
     svg: FlagSvgConfig
 
     @classmethod
     def from_mapping(cls, raw: Mapping[str, Any]) -> FlagsConfig:
+        min_request_interval_s = _float(
+            raw.get("min_request_interval_s", 0.8),
+            "flags.min_request_interval_s",
+        )
+        max_retries = _int(raw.get("max_retries", 5), "flags.max_retries")
+        retry_backoff_s = _float(raw.get("retry_backoff_s", 1.0), "flags.retry_backoff_s")
+        if min_request_interval_s < 0:
+            raise ValueError("flags.min_request_interval_s must be >= 0")
+        if max_retries < 0:
+            raise ValueError("flags.max_retries must be >= 0")
+        if retry_backoff_s <= 0:
+            raise ValueError("flags.retry_backoff_s must be > 0")
+
         return cls(
             source=_str(raw.get("source"), "flags.source"),
             cache_http=_bool(raw.get("cache_http"), "flags.cache_http"),
             request_timeout_s=_int(raw.get("request_timeout_s"), "flags.request_timeout_s"),
             user_agent=_str(raw.get("user_agent"), "flags.user_agent"),
+            min_request_interval_s=min_request_interval_s,
+            max_retries=max_retries,
+            retry_backoff_s=retry_backoff_s,
             output=FlagOutputConfig.from_mapping(_mapping(raw.get("output"), "flags.output")),
             svg=FlagSvgConfig.from_mapping(_mapping(raw.get("svg"), "flags.svg")),
         )

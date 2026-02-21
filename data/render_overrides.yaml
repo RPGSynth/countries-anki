@@ -21,6 +21,12 @@ FJI:
   center_on_capital: true
   capital_zoom_pct: -50
 
+
+USA:
+  inset: true
+  center_on_capital: true
+  capital_zoom_pct: -4500
+
 KIR:
   inset: false
   center_on_capital: true
@@ -47,9 +53,6 @@ NZL:
   capital_zoom_pct: -500
 
 NOR:
-  inset: false
-
-RUS:
   inset: false
 
 SYC:

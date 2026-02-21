@@ -10,6 +10,7 @@ from typing import Sequence
 from .city_selection import format_city_selection_lines, run_city_selection
 from .config import AppConfig, load_config
 from .countries import load_un_members
+from .flags import format_flag_lines, run_fetch_flags
 from .inspect_report import generate_inspection_report
 from .models import BuildManifest, CountrySpec
 from .qa import write_qa_index
@@ -87,9 +88,31 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Delete existing map_*.png files before rendering.",
     )
+    render_p.add_argument(
+        "--force-render",
+        action="store_true",
+        help="Re-render maps even when map_*.png already exists.",
+    )
 
-    flags_p = subparsers.add_parser("fetch-flags", help="Fetch flags only (not implemented yet).")
+    flags_p = subparsers.add_parser("fetch-flags", help="Fetch flags only.")
     add_common(flags_p)
+    flags_p.add_argument(
+        "--country",
+        action="append",
+        default=[],
+        help="ISO3 filter for flag fetching. Can be repeated.",
+    )
+    flags_p.add_argument(
+        "--limit-countries",
+        type=int,
+        default=None,
+        help="Fetch only first N ISO3-sorted countries.",
+    )
+    flags_p.add_argument(
+        "--clean-flags",
+        action="store_true",
+        help="Delete existing flag_*.png files before fetching.",
+    )
 
     deck_p = subparsers.add_parser("build-deck", help="Build Anki deck only (not implemented yet).")
     add_common(deck_p)
@@ -158,6 +181,13 @@ def _run_build(cfg: AppConfig, *, strict_data_files: bool) -> int:
         LOGGER.error("Build aborted due to map rendering errors.")
         return 1
 
+    flag_report = run_fetch_flags(cfg)
+    for line in format_flag_lines(flag_report):
+        LOGGER.info(line)
+    if not flag_report.ok:
+        LOGGER.error("Build aborted due to flag fetch errors.")
+        return 1
+
     countries = load_un_members(cfg.paths.un_members)
     qa_index_path: Path | None = None
     if cfg.qa.generate_index:
@@ -171,7 +201,6 @@ def _run_build(cfg: AppConfig, *, strict_data_files: bool) -> int:
         )
         LOGGER.info("QA index generated at %s", qa_index_path)
 
-    LOGGER.info("Flag step: stub (Milestone 4 pending).")
     LOGGER.info("Deck step: stub (Milestone 5 pending).")
 
     if cfg.build.write_manifest:
@@ -182,7 +211,7 @@ def _run_build(cfg: AppConfig, *, strict_data_files: bool) -> int:
                 "validate": "ok",
                 "select_cities": "ok" if city_selection_report.output_path else "skipped",
                 "render_maps": "ok" if render_report.ok else "error",
-                "fetch_flags": "stub",
+                "fetch_flags": "ok" if flag_report.ok else "error",
                 "build_deck": "stub",
                 "qa_index": "ok" if qa_index_path else "skipped",
             },
@@ -194,6 +223,8 @@ def _run_build(cfg: AppConfig, *, strict_data_files: bool) -> int:
                     else ""
                 ),
                 "maps_dir": str(cfg.paths.maps_dir),
+                "flags_dir": str(cfg.paths.flags_dir),
+                "flags_attribution": str(cfg.paths.attribution_dir / "flags.json"),
                 "output_apkg": str(cfg.project.output_apkg),
             },
         )
@@ -240,6 +271,7 @@ def _run_render_maps(
     limit_countries: int | None,
     debug_render: bool,
     clean_maps: bool,
+    force_render: bool,
 ) -> int:
     effective_limit = limit_countries
     if debug_render and effective_limit is None and not countries:
@@ -271,6 +303,7 @@ def _run_render_maps(
         country_filter=countries,
         limit_countries=effective_limit,
         debug_render=debug_render,
+        skip_existing=not force_render,
     )
     for line in format_render_lines(render_report):
         LOGGER.info(line)
@@ -297,6 +330,51 @@ def _run_render_maps(
             output_html=cfg.paths.qa_dir / "index.html",
             thumbnail_width_px=cfg.qa.thumbnail_width_px,
             max_columns=cfg.qa.max_columns,
+            flag_status_mode="render_only",
+        )
+        LOGGER.info("QA index generated at %s", qa_index_path)
+    return 0
+
+
+def _run_fetch_flags(
+    cfg: AppConfig,
+    *,
+    countries: Sequence[str],
+    limit_countries: int | None,
+    clean_flags: bool,
+) -> int:
+    report = run_fetch_flags(
+        cfg,
+        country_filter=countries,
+        limit_countries=limit_countries,
+        clean_flags=clean_flags,
+    )
+    for line in format_flag_lines(report):
+        LOGGER.info(line)
+    if not report.ok:
+        return 1
+
+    if cfg.qa.generate_index:
+        qa_countries = _resolve_render_scope_countries(
+            cfg,
+            countries=countries,
+            limit_countries=limit_countries,
+        )
+        if countries or limit_countries is not None:
+            LOGGER.info(
+                "QA index scoped to flag selection (%d countries).",
+                len(qa_countries),
+            )
+        else:
+            qa_countries = load_un_members(cfg.paths.un_members)
+        qa_index_path = write_qa_index(
+            countries=qa_countries,
+            maps_dir=cfg.paths.maps_dir,
+            flags_dir=cfg.paths.flags_dir,
+            output_html=cfg.paths.qa_dir / "index.html",
+            thumbnail_width_px=cfg.qa.thumbnail_width_px,
+            max_columns=cfg.qa.max_columns,
+            flag_status_mode="strict",
         )
         LOGGER.info("QA index generated at %s", qa_index_path)
     return 0
@@ -324,9 +402,16 @@ def _dispatch(args: argparse.Namespace) -> int:
             limit_countries=args.limit_countries,
             debug_render=bool(args.debug_render),
             clean_maps=bool(args.clean_maps),
+            force_render=bool(args.force_render),
         )
     if command == "fetch-flags":
-        return _stub_command("fetch-flags")
+        countries = [str(item) for item in args.country]
+        return _run_fetch_flags(
+            cfg,
+            countries=countries,
+            limit_countries=args.limit_countries,
+            clean_flags=bool(args.clean_flags),
+        )
     if command == "build-deck":
         return _stub_command("build-deck")
     if command == "inspect":

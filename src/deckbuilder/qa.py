@@ -17,8 +17,13 @@ def write_qa_index(
     output_html: Path,
     thumbnail_width_px: int,
     max_columns: int,
+    flag_status_mode: str = "strict",
 ) -> Path:
     """Generate an HTML index for map/flag visual QA."""
+    mode = flag_status_mode.strip().casefold()
+    if mode not in {"strict", "render_only"}:
+        raise ValueError("flag_status_mode must be 'strict' or 'render_only'.")
+
     rows: list[str] = []
     for country in sorted(countries, key=lambda c: c.name_en.casefold()):
         map_name = f"map_{country.iso3}.png"
@@ -40,6 +45,15 @@ def write_qa_index(
 
         map_src = f"../media/maps/{map_name}"
         flag_src = f"../media/flags/{flag_name}"
+        if flag_ok:
+            flag_status_text = "OK"
+            flag_placeholder = "Flag not generated yet"
+        elif mode == "render_only":
+            flag_status_text = "NOT_CHECKED"
+            flag_placeholder = "Flag step not run in this command"
+        else:
+            flag_status_text = "MISSING"
+            flag_placeholder = "Flag not generated yet"
         map_cell = (
             f"  <img src='{escape(map_src)}' alt='Map {escape(country.name_en)}' "
             f"width='{thumbnail_width_px}'>"
@@ -50,7 +64,7 @@ def write_qa_index(
             f"  <img src='{escape(flag_src)}' alt='Flag {escape(country.name_en)}' "
             f"width='{int(thumbnail_width_px * 0.6)}'>"
             if flag_ok
-            else "  <div class='placeholder small'>Flag not generated yet</div>"
+            else f"  <div class='placeholder small'>{escape(flag_placeholder)}</div>"
         )
 
         rows.append(
@@ -61,7 +75,7 @@ def write_qa_index(
                     f"  <p class='status {card_status}'>{card_status_label}</p>",
                     f"  <p class='asset-status'>map: {'OK' if map_ok else 'MISSING'}</p>",
                     map_cell,
-                    f"  <p class='asset-status'>flag: {'OK' if flag_ok else 'MISSING'}</p>",
+                    f"  <p class='asset-status'>flag: {flag_status_text}</p>",
                     flag_cell,
                     "</div>",
                 ]

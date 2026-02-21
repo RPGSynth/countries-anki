@@ -315,7 +315,7 @@ class Validator:
             )
         if missing_flags:
             report.add_warning(
-                "Missing flags (expected before Milestone 4): "
+                "Missing flags: "
                 f"{_format_code_list(sorted(missing_flags))}"
             )
 

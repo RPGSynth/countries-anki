@@ -118,6 +118,10 @@ _LABEL_POLICY = _LabelPolicy(
     edge_guard_min_inset_m=800.0,
 )
 
+_ANTIMERIDIAN_JUMP_DEG = 180.0
+_ANTIMERIDIAN_COMPONENT_CAPITAL_LON_MAX_DEG = 120.0
+_ANTIMERIDIAN_MAIN_WINDOW_HALF_WIDTH_DEG = 120.0
+
 
 @dataclass(frozen=True, slots=True)
 class RenderRequest:
@@ -309,12 +313,22 @@ class MapRenderer:
         if not policy.use_insets:
             effective_inset_geometries = ()
         elif effective_inset_geometries:
-            main_geometry, effective_inset_geometries = _merge_visible_insets_into_main_view(
-                main_geometry=main_geometry,
-                inset_geometries=effective_inset_geometries,
-                projection=main_projection,
-                cfg=self.cfg,
+            antimeridian_sensitive = _has_antimeridian_issue(req.main_geometry) or any(
+                _has_antimeridian_issue(geometry) for geometry in effective_inset_geometries
             )
+            if antimeridian_sensitive:
+                if self.debug_render:
+                    _LOGGER.info(
+                        "[render-debug] antimeridian guard active; skipping inset merge for %s",
+                        req.iso3,
+                    )
+            else:
+                main_geometry, effective_inset_geometries = _merge_visible_insets_into_main_view(
+                    main_geometry=main_geometry,
+                    inset_geometries=effective_inset_geometries,
+                    projection=main_projection,
+                    cfg=self.cfg,
+                )
 
         main_city_items, inset_city_items = _partition_selected_cities(
             selected=req.selected_cities,
@@ -545,6 +559,7 @@ def run_render_maps(
     country_filter: Sequence[str] | None = None,
     limit_countries: int | None = None,
     debug_render: bool = False,
+    skip_existing: bool = False,
 ) -> RenderMapsReport:
     """Render maps for all UN members from selected cities + Natural Earth geometry."""
     report = RenderMapsReport(output_dir=cfg.paths.maps_dir)
@@ -635,11 +650,22 @@ def run_render_maps(
     report.add_info(f"Basemap mode: {cfg.render.background.mode}")
     render_failures: list[str] = []
     rendered_count = 0
+    skipped_existing = 0
     missing_selection: list[str] = []
     missing_geometry: list[str] = []
 
     for idx, country in enumerate(countries, start=1):
         country_t0 = time.perf_counter()
+        output_path = cfg.paths.maps_dir / f"map_{country.iso3}.png"
+        if skip_existing and output_path.exists():
+            skipped_existing += 1
+            _LOGGER.info(
+                "[render] (%d/%d) skipped %s (existing map)",
+                idx,
+                len(countries),
+                country.iso3,
+            )
+            continue
         if debug_render:
             _LOGGER.info("[render-debug] (%d/%d) %s start", idx, len(countries), country.iso3)
         selection_entry = selections.get(country.iso3)
@@ -676,7 +702,6 @@ def run_render_maps(
             target_geometry=main_geometry,
         )
 
-        output_path = cfg.paths.maps_dir / f"map_{country.iso3}.png"
         req = RenderRequest(
             iso3=country.iso3,
             main_geometry=main_geometry,
@@ -720,6 +745,7 @@ def run_render_maps(
     report.summary = {
         "countries_total": total,
         "maps_rendered": rendered_count,
+        "maps_skipped_existing": skipped_existing,
         "maps_failed": len(render_failures),
         "maps_missing_selection": len(missing_selection),
         "maps_missing_geometry": len(missing_geometry),
@@ -744,6 +770,7 @@ def run_render_maps(
         "Render summary: "
         f"countries_total={total}, "
         f"maps_rendered={rendered_count}, "
+        f"maps_skipped_existing={skipped_existing}, "
         f"maps_failed={len(render_failures)}, "
         f"missing_selection={len(missing_selection)}, "
         f"missing_geometry={len(missing_geometry)}"
@@ -777,11 +804,10 @@ def _resolve_country_render_policy(
         if override is not None and override.inset is not None
         else default_use_insets
     )
-    has_zoom_override = override is not None and override.capital_zoom_pct is not None
     center_on_capital = (
         override.center_on_capital
         if override is not None and override.center_on_capital is not None
-        else (has_zoom_override or default_center_on_capital)
+        else default_center_on_capital
     )
     draw_outline = (
         override.outline
@@ -793,8 +819,7 @@ def _resolve_country_render_policy(
         if override is not None and override.capital_zoom_pct is not None
         else None
     )
-    if background_mode.casefold() == _BACKGROUND_WHITE:
-        draw_outline = True
+    _ = background_mode
     return _CountryRenderPolicy(
         draw_outline=draw_outline,
         center_on_capital=center_on_capital,
@@ -907,9 +932,17 @@ def _partition_country_geometry_for_insets(
     prefer_capital_polygon_as_main: bool = False,
 ) -> tuple[Any, tuple[Any, ...]]:
     components = _explode_polygons(geometry)
+    antimeridian_sensitive = _has_antimeridian_issue(geometry)
     if len(components) <= 1:
+        if antimeridian_sensitive and _is_valid_geometry(geometry):
+            clipped = _clip_geometry_to_capital_longitude_window(
+                geometry=geometry,
+                capital_lon=selected.capital.lon,
+                half_width_deg=_ANTIMERIDIAN_MAIN_WINDOW_HALF_WIDTH_DEG,
+            )
+            return (clipped, ())
         return (geometry, ())
-
+    capital_point = _city_to_point(selected.capital)
     ordered_components = sorted(
         components,
         key=lambda item: (
@@ -919,11 +952,16 @@ def _partition_country_geometry_for_insets(
         ),
     )
     main_component = ordered_components[0]
+    if antimeridian_sensitive:
+        # For dateline-sensitive countries, keep the component containing the capital as main.
+        matched = [
+            component
+            for component in ordered_components
+            if _geometry_matches_point(component, capital_point)
+        ]
+        if matched:
+            main_component = matched[0]
     if prefer_capital_polygon_as_main:
-        capital_point = _require_shapely_point_factory()(
-            selected.capital.lon,
-            selected.capital.lat,
-        )
         matched = [
             component
             for component in ordered_components
@@ -945,39 +983,59 @@ def _partition_country_geometry_for_insets(
         has_selected_city = _geometry_has_selected_city(component, city_points)
         far = distance >= _INSET_POLICY.distance_deg
         very_far = distance >= _INSET_POLICY.very_far_deg
-        if far and (
+        far_from_capital_lon = (
+            antimeridian_sensitive
+            and _component_capital_lon_distance_deg(component, selected.capital.lon)
+            > _ANTIMERIDIAN_COMPONENT_CAPITAL_LON_MAX_DEG
+        )
+        mark_as_inset = far and (
             area_share >= _INSET_POLICY.min_area_share
             or has_selected_city
             or very_far
-        ):
+        )
+        if far_from_capital_lon:
+            mark_as_inset = True
+
+        if mark_as_inset:
             inset_candidates.append(component)
         else:
             main_parts.append(component)
 
     if not inset_candidates:
-        return (geometry, ())
-
-    inset_candidates.sort(
-        key=lambda item: (
-            -float(item.area),
-            float(item.centroid.x),
-            float(item.centroid.y),
-        )
-    )
-
-    if len(inset_candidates) > _INSET_POLICY.max_count:
-        keep_count = max(_INSET_POLICY.max_count - 1, 0)
-        keep = inset_candidates[:keep_count]
-        overflow = inset_candidates[keep_count:]
-        if overflow:
-            keep.append(_require_shapely_unary_union()(overflow))
-        inset_geometries = keep
+        main_geometry = geometry
     else:
-        inset_geometries = inset_candidates
+        inset_candidates.sort(
+            key=lambda item: (
+                -float(item.area),
+                float(item.centroid.x),
+                float(item.centroid.y),
+            )
+        )
 
-    main_geometry = _require_shapely_unary_union()(main_parts)
-    if not _is_valid_geometry(main_geometry):
-        return (geometry, tuple(inset_geometries))
+        if len(inset_candidates) > _INSET_POLICY.max_count:
+            keep_count = max(_INSET_POLICY.max_count - 1, 0)
+            keep = inset_candidates[:keep_count]
+            overflow = inset_candidates[keep_count:]
+            if overflow:
+                keep.append(_require_shapely_unary_union()(overflow))
+            inset_geometries = keep
+        else:
+            inset_geometries = inset_candidates
+
+        main_geometry = _require_shapely_unary_union()(main_parts)
+        if not _is_valid_geometry(main_geometry):
+            return (geometry, tuple(inset_geometries))
+
+    if antimeridian_sensitive and _is_valid_geometry(main_geometry):
+        main_geometry = _clip_geometry_to_capital_longitude_window(
+            geometry=main_geometry,
+            capital_lon=selected.capital.lon,
+            half_width_deg=_ANTIMERIDIAN_MAIN_WINDOW_HALF_WIDTH_DEG,
+        )
+
+    if not inset_candidates:
+        return (main_geometry, ())
+
     return (main_geometry, tuple(inset_geometries))
 
 
@@ -1034,6 +1092,99 @@ def _geometry_matches_point(geometry: Any, point: Any) -> bool:
     return bool(
         envelope.contains(point) or envelope.distance(point) <= _INSET_POLICY.city_match_eps
     )
+
+
+def _has_antimeridian_issue(geometry: Any) -> bool:
+    if not _is_valid_geometry(geometry):
+        return False
+    min_lon, _, max_lon, _ = [float(item) for item in geometry.bounds]
+    if (max_lon - min_lon) > _ANTIMERIDIAN_JUMP_DEG:
+        return True
+    for ring in _iter_linear_rings(geometry):
+        if _ring_has_antimeridian_jump(ring):
+            return True
+    return False
+
+
+def _ring_has_antimeridian_jump(ring: Sequence[tuple[float, float]]) -> bool:
+    if len(ring) < 2:
+        return False
+    previous_lon = float(ring[0][0])
+    for point in ring[1:]:
+        current_lon = float(point[0])
+        if abs(current_lon - previous_lon) > _ANTIMERIDIAN_JUMP_DEG:
+            return True
+        previous_lon = current_lon
+    return False
+
+
+def _component_capital_lon_distance_deg(component: Any, capital_lon: float) -> float:
+    centroid_lon = float(component.centroid.x)
+    return abs(_wrapped_longitude_delta(centroid_lon, capital_lon))
+
+
+def _wrapped_longitude_delta(value_lon: float, anchor_lon: float) -> float:
+    delta = float(value_lon) - float(anchor_lon)
+    while delta <= -180.0:
+        delta += 360.0
+    while delta > 180.0:
+        delta -= 360.0
+    return delta
+
+
+def _clip_geometry_to_capital_longitude_window(
+    *,
+    geometry: Any,
+    capital_lon: float,
+    half_width_deg: float,
+) -> Any:
+    if not _is_valid_geometry(geometry):
+        return geometry
+    if half_width_deg <= 0.0 or half_width_deg >= 180.0:
+        return geometry
+
+    windows = _longitude_windows_around_anchor(
+        anchor_lon=capital_lon,
+        half_width_deg=half_width_deg,
+    )
+    if not windows:
+        return geometry
+
+    box_factory = _require_shapely_box_factory()
+    clip_boxes = [
+        box_factory(min_lon, -90.0, max_lon, 90.0)
+        for min_lon, max_lon in windows
+    ]
+    clip_region = _require_shapely_unary_union()(clip_boxes)
+    clipped = geometry.intersection(clip_region)
+    if not _is_valid_geometry(clipped):
+        return geometry
+    return clipped
+
+
+def _longitude_windows_around_anchor(
+    *,
+    anchor_lon: float,
+    half_width_deg: float,
+) -> tuple[tuple[float, float], ...]:
+    anchor = _normalize_longitude(anchor_lon)
+    lower = anchor - half_width_deg
+    upper = anchor + half_width_deg
+
+    if lower < -180.0:
+        return ((-180.0, upper), (lower + 360.0, 180.0))
+    if upper > 180.0:
+        return ((lower, 180.0), (-180.0, upper - 360.0))
+    return ((lower, upper),)
+
+
+def _normalize_longitude(lon: float) -> float:
+    value = float(lon)
+    while value <= -180.0:
+        value += 360.0
+    while value > 180.0:
+        value -= 360.0
+    return value
 
 
 def _explode_polygons(geometry: Any) -> list[Any]:
@@ -1296,11 +1447,15 @@ def _capital_zoom_scale(zoom_pct: float | None) -> float:
     value = float(zoom_pct)
     if value > 0.0:
         # +100 => 2x zoom in => half spatial span.
-        scale = 1.0 / (1.0 + value / 100.0)
+        denominator = 1.0 + value / 100.0
+        # Keep only numeric safety guard; no user-level clamping is applied.
+        if abs(denominator) < 1e-12:
+            return 1e12
+        scale = 1.0 / denominator
     else:
         # -100 => 2x zoom out => double spatial span.
         scale = 1.0 + (abs(value) / 100.0)
-    return max(0.05, min(scale, 20.0))
+    return scale
 
 
 def _ensure_min_span(start: float, end: float, min_span: float) -> tuple[float, float]:

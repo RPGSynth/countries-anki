@@ -4,7 +4,7 @@ Automated, reproducible pipeline skeleton for generating an Anki deck with one n
 - Front: country name + rendered map with main cities
 - Back: country flag
 
-This repository provides a production-grade architecture and a working Milestone 3 map-rendering pipeline. Flags and deck packaging are still planned in later milestones.
+This repository provides a production-grade architecture and working Milestone 3 + Milestone 4 pipelines (map rendering and flag fetching). Deck packaging is planned in Milestone 5.
 
 ## Layout
 
@@ -56,6 +56,7 @@ python -m pip install -e .
 python -m deckbuilder validate --config config.yaml
 python -m deckbuilder select-cities --config config.yaml
 python -m deckbuilder render-maps --config config.yaml
+python -m deckbuilder fetch-flags --config config.yaml
 python -m deckbuilder build --config config.yaml
 python -m deckbuilder inspect --config config.yaml --limit 40
 ```
@@ -66,6 +67,7 @@ Or using console script:
 deckbuilder validate --config config.yaml
 deckbuilder select-cities --config config.yaml
 deckbuilder render-maps --config config.yaml
+deckbuilder fetch-flags --config config.yaml
 deckbuilder render-maps --config config.yaml --debug-render --limit-countries 3
 deckbuilder render-maps --config config.yaml --debug-render --country BEL --country CAN --country MCO --clean-maps
 deckbuilder build --config config.yaml
@@ -100,14 +102,19 @@ Open `build/qa/index.html` to visually review generated maps.
       - `outline` (force country outline on/off)
       - `center_on_capital` (force capital-centered viewport on/off)
       - `inset` (force insets on/off)
+  - Milestone 4 Wikimedia flag pipeline (`fetch-flags`) with:
+    - override support via `data/flags_overrides.yaml`
+    - deterministic ISO3-based title resolution from Wikidata with fallback probes
+    - SVG preference with fallback to Wikimedia-rendered PNG thumbnails
+    - normalized output to `build/media/flags/flag_{ISO3}.png`
+    - attribution export to `build/attribution/flags.json`
   - CLI command structure (`build`, `validate`, `select-cities`, `inspect`, `render-maps`, `fetch-flags`, `build-deck`)
   - Milestone 1 validation: Natural Earth loading, UN ISO3 admin0 coverage checks, geometry cardinality checks, and capital coverage checks (with overrides)
   - Inspection report command: visual HTML + JSON diagnostics for joins, city selection outputs, and map availability
   - Build directory/bootstrap, logging, manifest writing
   - QA index generation with per-country map/flag status and previews
-  - `build` now runs validation + city-selection + map rendering before downstream stub steps
+  - `build` now runs validation + city-selection + map rendering + flag fetching before deck step
 - Stubbed (planned milestones):
-  - Wikimedia flag retrieval and attribution harvesting
   - `genanki` deck packaging
 
 ## Design Principles
