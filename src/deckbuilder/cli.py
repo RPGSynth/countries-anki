@@ -7,6 +7,7 @@ import logging
 from pathlib import Path
 from typing import Sequence
 
+from .anki import format_deck_lines, run_build_deck
 from .city_selection import format_city_selection_lines, run_city_selection
 from .config import AppConfig, load_config
 from .countries import load_un_members
@@ -114,7 +115,7 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Delete existing flag_*.png files before fetching.",
     )
 
-    deck_p = subparsers.add_parser("build-deck", help="Build Anki deck only (not implemented yet).")
+    deck_p = subparsers.add_parser("build-deck", help="Build Anki deck only.")
     add_common(deck_p)
 
     inspect_p = subparsers.add_parser(
@@ -188,6 +189,13 @@ def _run_build(cfg: AppConfig, *, strict_data_files: bool) -> int:
         LOGGER.error("Build aborted due to flag fetch errors.")
         return 1
 
+    deck_report = run_build_deck(cfg)
+    for line in format_deck_lines(deck_report):
+        LOGGER.info(line)
+    if not deck_report.ok:
+        LOGGER.error("Build aborted due to deck packaging errors.")
+        return 1
+
     countries = load_un_members(cfg.paths.un_members)
     qa_index_path: Path | None = None
     if cfg.qa.generate_index:
@@ -201,8 +209,6 @@ def _run_build(cfg: AppConfig, *, strict_data_files: bool) -> int:
         )
         LOGGER.info("QA index generated at %s", qa_index_path)
 
-    LOGGER.info("Deck step: stub (Milestone 5 pending).")
-
     if cfg.build.write_manifest:
         manifest = BuildManifest.create(
             config_hash_sha256=sha256_file(cfg.source_path),
@@ -212,7 +218,7 @@ def _run_build(cfg: AppConfig, *, strict_data_files: bool) -> int:
                 "select_cities": "ok" if city_selection_report.output_path else "skipped",
                 "render_maps": "ok" if render_report.ok else "error",
                 "fetch_flags": "ok" if flag_report.ok else "error",
-                "build_deck": "stub",
+                "build_deck": "ok" if deck_report.ok else "error",
                 "qa_index": "ok" if qa_index_path else "skipped",
             },
             artifacts={
@@ -225,7 +231,7 @@ def _run_build(cfg: AppConfig, *, strict_data_files: bool) -> int:
                 "maps_dir": str(cfg.paths.maps_dir),
                 "flags_dir": str(cfg.paths.flags_dir),
                 "flags_attribution": str(cfg.paths.attribution_dir / "flags.json"),
-                "output_apkg": str(cfg.project.output_apkg),
+                "output_apkg": str(deck_report.output_path or cfg.project.output_apkg),
             },
         )
         manifest_path = cfg.paths.manifests_dir / "build_manifest.json"
@@ -380,6 +386,13 @@ def _run_fetch_flags(
     return 0
 
 
+def _run_build_deck(cfg: AppConfig) -> int:
+    report = run_build_deck(cfg)
+    for line in format_deck_lines(report):
+        LOGGER.info(line)
+    return 0 if report.ok else 1
+
+
 def _dispatch(args: argparse.Namespace) -> int:
     cfg = _load_and_setup(args)
     command = str(args.command)
@@ -413,7 +426,7 @@ def _dispatch(args: argparse.Namespace) -> int:
             clean_flags=bool(args.clean_flags),
         )
     if command == "build-deck":
-        return _stub_command("build-deck")
+        return _run_build_deck(cfg)
     if command == "inspect":
         countries = [str(item) for item in args.country]
         return _run_inspect(cfg, countries=countries, limit=int(args.limit))

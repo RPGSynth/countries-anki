@@ -21,6 +21,10 @@ FJI:
   center_on_capital: true
   capital_zoom_pct: -50
 
+GNQ:
+  center_on_capital: true
+  capital_zoom_pct: -100
+
 
 USA:
   inset: true

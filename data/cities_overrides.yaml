@@ -1,3 +1,9 @@
+GNQ:
+  manual_capital:
+    name: "Ciudad de la Paz"
+    lon: 10.8268
+    lat: 1.5995
+
 NRU:
   n: 0
   manual_capital:

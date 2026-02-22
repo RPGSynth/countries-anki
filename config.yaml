@@ -1,5 +1,5 @@
 project:
-  deck_name: "Countries (UN Members) - Map + Cities -> Flag"
+  deck_name: "Atlas Recall (UN Members) - Flag -> Map"
   deck_id: 1743812345
   model_id: 1743812346
   output_apkg: "build/deck/Countries_UN.apkg"
